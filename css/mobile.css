@@ -1,0 +1,266 @@
+/* Legal Sthal - Responsive & Mobile Styling (Taste-Skill System) */
+
+@media (max-width: 1024px) {
+  :root {
+    --sidebar-width: 250px;
+  }
+  
+  .content-area {
+    padding: 1.5rem;
+  }
+
+  .grid-4 { grid-template-columns: repeat(2, 1fr) !important; }
+  .grid-3 { grid-template-columns: repeat(2, 1fr) !important; }
+}
+
+@media (max-width: 768px) {
+  /* Mobile Sidebar Drawer System */
+  .sidebar {
+    position: fixed;
+    top: 0 !important;
+    bottom: 0 !important;
+    left: 0;
+    height: 100vh !important;
+    width: 280px !important;
+    z-index: 990 !important;
+    transform: translateX(-100%);
+    transition: transform var(--transition-normal);
+    box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.9);
+  }
+
+  .sidebar.open {
+    transform: translateX(0) !important;
+  }
+
+  .sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(6, 14, 31, 0.8);
+    backdrop-filter: blur(4px);
+    z-index: 980;
+    opacity: 0;
+    visibility: hidden;
+    transition: all var(--transition-normal);
+  }
+
+  .sidebar-backdrop.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .main-wrapper {
+    margin-left: 0 !important;
+  }
+
+  .menu-toggle-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .topbar {
+    padding: 0 1rem;
+    position: sticky;
+    top: var(--demo-bar-height, 44px) !important;
+    z-index: 800;
+  }
+
+  .search-box {
+    display: none; /* Hide header search box on mobile for clean topbar */
+  }
+
+  .user-info {
+    display: none; /* Hide secondary name text in user badge on small screens */
+  }
+
+  .content-area {
+    padding: 1rem 0.75rem;
+  }
+
+  /* Hide Desktop Hero Banner on Login Pages */
+  .desktop-only-banner {
+    display: none !important;
+  }
+
+  /* Form & Grid Collapses */
+  .grid-4, .grid-3, .grid-2 {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.85rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .page-title {
+    font-size: 1.4rem !important;
+  }
+
+  .page-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .page-actions .btn {
+    flex: 1;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  /* Card & Header Responsive Fixes */
+  .card-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .card-header .search-box,
+  .card-header select.form-control {
+    width: 100% !important;
+  }
+
+  .card-body {
+    padding: 1rem;
+  }
+
+  /* Data Table Momentum Touch Scroll */
+  .table-container {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .data-table th, .data-table td {
+    padding: 0.75rem 0.85rem;
+    font-size: 0.8125rem;
+  }
+
+  /* Touch Target & Input Safari Zoom Prevention */
+  .btn {
+    min-height: 44px;
+  }
+
+  .form-control {
+    font-size: 16px !important; /* Prevents auto-zoom on iOS inputs */
+    padding: 0.75rem 0.85rem;
+  }
+
+  /* Modal Responsive Sheet */
+  .modal-dialog {
+    max-width: 94vw !important;
+    margin: 0.5rem auto;
+    max-height: 92vh;
+  }
+
+  .modal-header {
+    padding: 1rem;
+  }
+
+  .modal-body {
+    padding: 1rem;
+  }
+
+  .modal-footer {
+    padding: 0.85rem 1rem;
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+  }
+
+  .modal-footer .btn {
+    width: 100%;
+  }
+
+  /* Wizard Multi-Step Header on Mobile */
+  .wizard-steps {
+    gap: 0.25rem;
+  }
+
+  .wizard-step-label {
+    font-size: 0.65rem;
+    text-align: center;
+  }
+
+  /* Service & Component Cards */
+  .qr-doc-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 1.25rem 1rem;
+  }
+
+  .qr-doc-info {
+    width: 100%;
+  }
+
+  .spoc-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .spoc-contact {
+    justify-content: center;
+  }
+
+  .spoc-actions {
+    width: 100%;
+    justify-content: center;
+    margin-top: 0.5rem;
+  }
+
+  .spoc-actions .btn {
+    flex: 1;
+  }
+
+  .celebration-banner {
+    padding: 1.25rem 1rem;
+  }
+
+  .celebration-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .celebration-actions .btn {
+    width: 100%;
+  }
+
+  .demo-workflow-bar {
+    padding: 0 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .demo-bar-actions {
+    gap: 0.35rem;
+  }
+
+  .demo-btn {
+    padding: 0.2rem 0.45rem;
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title {
+    font-size: 1.25rem !important;
+  }
+  
+  .stat-card {
+    padding: 1rem;
+  }
+
+  .stat-value {
+    font-size: 1.35rem !important;
+  }
+
+  .btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+}
