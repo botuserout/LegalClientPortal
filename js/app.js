@@ -33,7 +33,7 @@ import { renderAdminSpocs } from './views/admin/spocsView.js';
 import { renderAdminQuoteRequests, bindAdminQuoteRequestsEvents } from './views/admin/quoteRequestsView.js';
 import { renderAdminNotifications } from './views/admin/notificationsView.js';
 import { renderAdminCrmSync, bindAdminCrmSyncEvents } from './views/admin/crmSyncView.js';
-import { renderAdminSettings } from './views/admin/settingsView.js';
+import { renderAdminSettings, bindAdminSettingsEvents } from './views/admin/settingsView.js';
 
 class App {
   constructor() {
@@ -251,6 +251,7 @@ class App {
     bindAdminDocumentsEvents();
     bindAdminQuoteRequestsEvents();
     bindAdminCrmSyncEvents();
+    bindAdminSettingsEvents();
   }
 }
 
