@@ -22,8 +22,9 @@ export const authGuard = {
     const isClient = authService.isClient();
     const isAdmin = authService.isAdmin();
 
-    // 1. Public Auth Flow Pages (Login, Reset, Forgot)
+    // 1. Public Auth Flow Pages (Login, Register, Reset, Forgot)
     const isAuthPage = cleanRoute === 'client/login' ||
+                       cleanRoute === 'client/register' ||
                        cleanRoute === 'admin/login' ||
                        cleanRoute === 'client/forgot-password' ||
                        cleanRoute === 'client/reset-password';
@@ -31,8 +32,8 @@ export const authGuard = {
     // 2. Forced First-Login Password Change Page
     const isChangePasswordPage = cleanRoute === 'client/change-password';
 
-    // If authenticated user visits public login page:
-    if (isAuth && (cleanRoute === 'client/login' || cleanRoute === 'admin/login')) {
+    // If authenticated user visits public login or register page:
+    if (isAuth && (cleanRoute === 'client/login' || cleanRoute === 'client/register' || cleanRoute === 'admin/login')) {
       if (isFirstLogin) {
         return { allowed: false, redirectTo: 'client/change-password', reason: 'FIRST_LOGIN_REQUIRED' };
       }
@@ -42,8 +43,8 @@ export const authGuard = {
       return { allowed: false, redirectTo: 'client/dashboard', reason: 'ALREADY_AUTHENTICATED' };
     }
 
-    // Allow public forgot / reset password pages
-    if (cleanRoute === 'client/forgot-password' || cleanRoute === 'client/reset-password') {
+    // Allow public register, forgot, and reset password pages
+    if (cleanRoute === 'client/register' || cleanRoute === 'client/forgot-password' || cleanRoute === 'client/reset-password') {
       return { allowed: true, redirectTo: null, reason: 'PUBLIC_ACCESS' };
     }
 

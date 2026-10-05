@@ -284,7 +284,39 @@ export const clientService = {
     return normalizeClient(dataStore.getClientById(id));
   },
 
-  createClient(clientData) {
+  async createClient(clientData) {
+    if (CONFIG.isLiveEndpointConfigured()) {
+      const payload = {
+        action: 'createClient',
+        clientData: clientData,
+        companyName: clientData.companyName || clientData.name,
+        contactPerson: clientData.contactPerson || clientData.contactName,
+        email: clientData.email,
+        mobile: clientData.phone || clientData.mobile,
+        state: clientData.state,
+        serviceType: clientData.serviceType,
+        companyType: clientData.companyType,
+        totalAmount: clientData.totalAmount,
+        paidAmount: clientData.paidAmount,
+        spocId: clientData.spocId,
+        password: clientData.password || 'password123'
+      };
+      const res = await apiClient.post('createClient', payload);
+      if (res.success) {
+        dataStore.createClient({
+          ...clientData,
+          id: res.client?.id || clientData.id
+        });
+        return {
+          success: true,
+          client: normalizeClient(res.client || clientData),
+          service: res.service,
+          message: res.message || 'Client created successfully!'
+        };
+      }
+      throw new Error(res.error?.message || res.message || 'Failed to create client on server.');
+    }
+
     const result = dataStore.createClient(clientData);
     return Promise.resolve(result);
   },

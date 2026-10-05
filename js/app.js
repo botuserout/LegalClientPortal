@@ -12,6 +12,7 @@ import { toast } from './ui/toast.js';
 
 // Auth & Security Views
 import { renderClientLogin, bindClientLoginEvents } from './views/client/loginView.js';
+import { renderClientRegister, bindClientRegisterEvents } from './views/client/registerView.js';
 import { renderAdminLogin, bindAdminLoginEvents } from './views/admin/loginView.js';
 import { renderChangePassword, bindChangePasswordEvents } from './views/client/changePasswordView.js';
 import { renderForgotPassword, bindForgotPasswordEvents } from './views/client/forgotPasswordView.js';
@@ -92,6 +93,12 @@ class App {
     if (cleanRoute === 'client/login') {
       this.root.innerHTML = renderClientLogin();
       bindClientLoginEvents((route) => this.navigate(route));
+      return;
+    }
+
+    if (cleanRoute === 'client/register') {
+      this.root.innerHTML = renderClientRegister();
+      bindClientRegisterEvents((route) => this.navigate(route));
       return;
     }
 

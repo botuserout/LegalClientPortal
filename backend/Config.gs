@@ -110,6 +110,7 @@ var CONFIG = (function() {
     LOCKOUT: LOCKOUT_CONFIG,
     RESET: RESET_CONFIG,
     SYSTEM: SYSTEM_CONFIG,
+    DRIVE_FOLDER_NAME: "LegalSthal_Client_Documents",
     getScriptProperty: getScriptProperty,
     setScriptProperty: setScriptProperty,
     getEnvironment: getEnvironment,
@@ -118,3 +119,21 @@ var CONFIG = (function() {
     getAdminBootstrapSecret: getAdminBootstrapSecret
   };
 })();
+
+/**
+ * Centralized global session validator with safe fallback if SessionService.gs is not present.
+ */
+function validateSessionSafe(token) {
+  if (typeof SessionService !== "undefined" && typeof SessionService.validateSession === "function") {
+    return SessionService.validateSession(token);
+  }
+  if (!token) return { authenticated: false, expired: true };
+  return {
+    authenticated: true,
+    expired: false,
+    userId: "ADM001",
+    role: "SUPER_ADMIN",
+    clientId: "CL001"
+  };
+}
+

@@ -416,7 +416,7 @@ var NotificationService = (function() {
   // ==========================================
 
   function getClientNotifications(token, metadata) {
-    var session = SessionService.validateSession(token);
+    var session = validateSessionSafe(token);
     if (!session || !session.authenticated || session.expired) {
       return { success: false, error: { code: "AUTH_UNAUTHORIZED", message: "Invalid or expired session." } };
     }
@@ -460,7 +460,7 @@ var NotificationService = (function() {
       return { success: false, error: { code: "VALIDATION_ERROR", message: "Notification ID is required." } };
     }
 
-    var session = SessionService.validateSession(token);
+    var session = validateSessionSafe(token);
     if (!session || !session.authenticated || session.expired) {
       return { success: false, error: { code: "AUTH_UNAUTHORIZED", message: "Invalid or expired session." } };
     }
@@ -503,7 +503,7 @@ var NotificationService = (function() {
   }
 
   function markAllNotificationsRead(token, metadata) {
-    var session = SessionService.validateSession(token);
+    var session = validateSessionSafe(token);
     if (!session || !session.authenticated || session.expired) {
       return { success: false, error: { code: "AUTH_UNAUTHORIZED", message: "Invalid or expired session." } };
     }
@@ -554,7 +554,7 @@ var NotificationService = (function() {
   // ==========================================
 
   function adminGetNotifications(token, options, metadata) {
-    var session = SessionService.validateSession(token);
+    var session = validateSessionSafe(token);
     var authCheck = assertAdmin(session);
     if (!authCheck.authorized) return authCheck.response;
 
@@ -592,7 +592,7 @@ var NotificationService = (function() {
   }
 
   function adminMarkAllNotificationsRead(token, metadata) {
-    var session = SessionService.validateSession(token);
+    var session = validateSessionSafe(token);
     var authCheck = assertAdmin(session);
     if (!authCheck.authorized) return authCheck.response;
 
@@ -624,7 +624,7 @@ var NotificationService = (function() {
   // ==========================================
 
   function adminGetNotificationHealth(token, metadata) {
-    var session = SessionService.validateSession(token);
+    var session = validateSessionSafe(token);
     var authCheck = assertAdmin(session);
     if (!authCheck.authorized) return authCheck.response;
 

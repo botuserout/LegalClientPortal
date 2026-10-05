@@ -123,7 +123,8 @@ export function openCreateClientWizard() {
     companyType: 'Private Limited',
     totalAmount: 9999,
     paidAmount: 499,
-    spocId: 'SPOC001'
+    spocId: 'SPOC001',
+    password: 'password123'
   };
 
   const renderWizardContent = () => {

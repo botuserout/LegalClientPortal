@@ -1,13 +1,19 @@
 const ENDPOINT_STORAGE_KEY = 'legalsthal_apps_script_url';
 
 const DEFAULT_API_ENDPOINT =
-  'https://script.google.com/macros/s/AKfycbzQ76M8ki9F6dctObcu3hp37GHaAMNpeIPgm4VAm6Sweraczu3kqofmEcM0z4vwJoCc/exec';
+  'https://script.google.com/macros/s/AKfycbxJ-MYnHlZAPQ8HjKzIjEl-YsxzXh8LtdN-V5fUEA8nT0EmXtun2BK4czmrTlVdShatzw/exec';
+
+// Always update local storage to use the new deployment URL if an old one was stored
+if (typeof localStorage !== 'undefined') {
+  const currentStored = localStorage.getItem(ENDPOINT_STORAGE_KEY);
+  if (currentStored && currentStored !== DEFAULT_API_ENDPOINT) {
+    localStorage.setItem(ENDPOINT_STORAGE_KEY, DEFAULT_API_ENDPOINT);
+  }
+}
 
 export const CONFIG = {
 
-  API_BASE_URL:
-    localStorage.getItem(ENDPOINT_STORAGE_KEY) ||
-    DEFAULT_API_ENDPOINT,
+  API_BASE_URL: DEFAULT_API_ENDPOINT,
 
   SESSION_STORAGE_KEY: 'legalsthal_session_token',
 

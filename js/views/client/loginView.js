@@ -80,7 +80,14 @@ export function renderClientLogin() {
             </button>
           </form>
 
-          <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.08); text-align: center;">
+          <div style="margin-top: 1.5rem; text-align: center;">
+            <span style="font-size: 0.875rem; color: #cbd5e1;">
+              Don't have a Legal Sthal account yet? 
+              <a href="#client/register" id="create-account-link" style="color: #d4af37; font-weight: 600; text-decoration: underline;">Create an Account</a>
+            </span>
+          </div>
+
+          <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid rgba(255, 255, 255, 0.08); text-align: center;">
             <span style="font-size: 0.8125rem; color: #94a3b8;">
               Are you an internal team member? 
               <a href="#admin/login" style="color: #f3e5ab; font-weight: 600; text-decoration: underline;">Go to Admin Portal</a>

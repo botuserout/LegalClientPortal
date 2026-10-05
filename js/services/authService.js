@@ -110,6 +110,74 @@ class AuthService {
   }
 
   /**
+   * Registers a new client account in Legal Sthal.
+   * @param {Object} clientData - { companyName, contactPerson, email, mobile, state, password }
+   */
+  async register(clientData) {
+    if (!clientData || !clientData.email || !clientData.email.trim()) {
+      return {
+        success: false,
+        error: normalizeApiError({ code: ERROR_CODES.VALIDATION_ERROR, message: 'Please enter a valid email address.' })
+      };
+    }
+
+    if (!clientData.password || typeof clientData.password !== 'string') {
+      return {
+        success: false,
+        error: normalizeApiError({ code: ERROR_CODES.VALIDATION_ERROR, message: 'Password is required.' })
+      };
+    }
+
+    const policy = this.validatePasswordPolicy(clientData.password);
+    if (!policy.valid) {
+      return {
+        success: false,
+        error: normalizeApiError({ code: ERROR_CODES.PASSWORD_POLICY_VIOLATION, message: policy.errors.join(' ') })
+      };
+    }
+
+    const response = await apiClient.post('createClient', {
+      clientData: clientData,
+      companyName: clientData.companyName,
+      contactPerson: clientData.contactPerson,
+      email: clientData.email,
+      mobile: clientData.mobile,
+      state: clientData.state,
+      password: clientData.password
+    });
+
+    if (response.success) {
+      if (!CONFIG.isLiveEndpointConfigured()) {
+        try {
+          const { dataStore } = await import('./dataStore.js');
+          dataStore.addClient(clientData);
+        } catch (e) {}
+      }
+      return {
+        success: true,
+        message: response.message || 'Account created successfully! Please sign in with your credentials.'
+      };
+    }
+
+    // Local prototype offline mode fallback
+    if (!CONFIG.isLiveEndpointConfigured()) {
+      try {
+        const { dataStore } = await import('./dataStore.js');
+        dataStore.addClient(clientData);
+        return {
+          success: true,
+          message: 'Registration successful! You can now sign in with your account.'
+        };
+      } catch (e) {}
+    }
+
+    return {
+      success: false,
+      error: response.error || normalizeApiError({ code: ERROR_CODES.SERVER_ERROR })
+    };
+  }
+
+  /**
    * Terminates active session both on backend and in local state.
    */
   async logout() {

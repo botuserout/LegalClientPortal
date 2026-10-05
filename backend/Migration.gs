@@ -83,8 +83,7 @@ function getTargetDatabaseSchema() {
       "email",
       "mobile",
       "login_id",
-      "password_hash",
-      "password_salt",
+      "password",
       "first_login",
       "status",
       "failed_attempts",
@@ -173,8 +172,7 @@ function getTargetDatabaseSchema() {
       "admin_id",
       "name",
       "email",
-      "password_hash",
-      "password_salt",
+      "password",
       "role",
       "status",
       "failed_attempts",
@@ -358,12 +356,21 @@ function getLegacyHeaderAliases() {
 // 4. HEADER & SHEET REPOSITORY HELPERS
 // ==========================================
 
+var _cachedSpreadsheetInstance = null;
+
 function getSpreadsheetInstance() {
+  if (_cachedSpreadsheetInstance) {
+    return _cachedSpreadsheetInstance;
+  }
   var prop = PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");
   if (prop) {
-    try { return SpreadsheetApp.openById(prop); } catch (e) {}
+    try {
+      _cachedSpreadsheetInstance = SpreadsheetApp.openById(prop);
+      return _cachedSpreadsheetInstance;
+    } catch (e) {}
   }
-  return SpreadsheetApp.getActiveSpreadsheet();
+  _cachedSpreadsheetInstance = SpreadsheetApp.getActiveSpreadsheet();
+  return _cachedSpreadsheetInstance;
 }
 
 /**
@@ -822,6 +829,51 @@ function performSafeDataBackfill(ss, report) {
         }
       }
     }
+  }
+
+  // 5. Auto-seed Default Super Admin in AdminUsers if empty
+  var adminSheet = ss.getSheetByName("AdminUsers");
+  if (adminSheet && adminSheet.getLastRow() <= 1) {
+    var aHeaders = getSheetHeaders(adminSheet);
+    var aMap = getColumnIndexMap(aHeaders, "AdminUsers");
+    var nowIso = new Date().toISOString();
+    
+    var aRow = new Array(aHeaders.length);
+    for (var a = 0; a < aRow.length; a++) aRow[a] = "";
+    
+    if (aMap["admin_id"] !== undefined) aRow[aMap["admin_id"]] = "ADM001";
+    if (aMap["name"] !== undefined) aRow[aMap["name"]] = "Raunak";
+    if (aMap["email"] !== undefined) aRow[aMap["email"]] = "legalsthal@gmail.com";
+    if (aMap["password"] !== undefined) aRow[aMap["password"]] = "Raunak@31";
+    if (aMap["legacy_password"] !== undefined) aRow[aMap["legacy_password"]] = "Raunak@31";
+    if (aMap["role"] !== undefined) aRow[aMap["role"]] = "SUPER_ADMIN";
+    if (aMap["status"] !== undefined) aRow[aMap["status"]] = "ACTIVE";
+    if (aMap["failed_attempts"] !== undefined) aRow[aMap["failed_attempts"]] = 0;
+    if (aMap["created_at"] !== undefined) aRow[aMap["created_at"]] = nowIso;
+    if (aMap["updated_at"] !== undefined) aRow[aMap["updated_at"]] = nowIso;
+    
+    adminSheet.appendRow(aRow);
+    Logger.log("[MIGRATE] Auto-seeded default SUPER_ADMIN (legalsthal@gmail.com) in AdminUsers.");
+  }
+
+  // 6. Auto-seed Default SPOC in SPOCs if empty
+  var spocSheet = ss.getSheetByName("SPOCs");
+  if (spocSheet && spocSheet.getLastRow() <= 1) {
+    var spHeaders = getSheetHeaders(spocSheet);
+    var spMap = getColumnIndexMap(spHeaders, "SPOCs");
+    var spRow = new Array(spHeaders.length);
+    for (var sp = 0; sp < spRow.length; sp++) spRow[sp] = "";
+    
+    if (spMap["spoc_id"] !== undefined) spRow[spMap["spoc_id"]] = "SPOC001";
+    if (spMap["name"] !== undefined) spRow[spMap["name"]] = "Rahul Sharma";
+    if (spMap["title"] !== undefined) spRow[spMap["title"]] = "Client Relationship Executive";
+    if (spMap["mobile"] !== undefined) spRow[spMap["mobile"]] = "+91 98765 43210";
+    if (spMap["email"] !== undefined) spRow[spMap["email"]] = "rahul@legalsthal.com";
+    if (spMap["assigned_clients"] !== undefined) spRow[spMap["assigned_clients"]] = 1;
+    if (spMap["status"] !== undefined) spRow[spMap["status"]] = "Active";
+    
+    spocSheet.appendRow(spRow);
+    Logger.log("[MIGRATE] Auto-seeded default SPOC001 in SPOCs.");
   }
   
   report.backfillSummary = backfill;
