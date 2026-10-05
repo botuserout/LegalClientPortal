@@ -98,7 +98,12 @@ export async function renderAdminClientDetail(clientId) {
   `;
 }
 
+let clientDetailEventsBound = false;
+
 export function bindAdminClientDetailEvents() {
+  if (clientDetailEventsBound) return;
+  clientDetailEventsBound = true;
+
   document.addEventListener('click', (e) => {
     const btn = e.target.closest('.js-open-add-service-modal');
     if (btn) {

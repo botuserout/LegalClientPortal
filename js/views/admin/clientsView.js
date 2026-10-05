@@ -102,7 +102,12 @@ export async function renderAdminClients() {
   `;
 }
 
+let clientsEventsBound = false;
+
 export function bindAdminClientsEvents() {
+  if (clientsEventsBound) return;
+  clientsEventsBound = true;
+
   document.addEventListener('click', (e) => {
     if (e.target.closest('.js-open-create-client-wizard, .js-trigger-create-client')) {
       openCreateClientWizard();

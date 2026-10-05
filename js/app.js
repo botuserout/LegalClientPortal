@@ -65,7 +65,9 @@ class App {
   }
 
   navigate(route) {
-    window.location.hash = `#${route}`;
+    const targetHash = `#${route}`;
+    if (window.location.hash === targetHash) return;
+    window.location.hash = targetHash;
   }
 
   async handleRoute() {

@@ -12,18 +12,15 @@ import { renderStatusBadge, icons } from '../../ui/components.js';
 export async function renderAdminDashboard() {
   const adminData = await adminService.getDashboard();
   const liveMetrics = adminData.metrics || {};
+  const recentClients = adminData.recentClients || [];
+  const recentServices = adminData.recentServices || [];
 
-  const clients = await clientService.getClients();
-  const services = await serviceService.getServices();
-  const docs = await documentService.getAllDocuments();
-  const quotes = await quoteService.getQuoteRequests();
-
-  const pendingDocs = docs.filter(d => d.status === 'Pending' || d.status === 'Under Review').length;
-  const rejectedDocs = docs.filter(d => d.status === 'Rejected').length;
-  const activeServices = liveMetrics.activeServices !== undefined ? liveMetrics.activeServices : services.filter(s => s.status !== 'Completed').length;
-  const completedServices = liveMetrics.completedServices !== undefined ? liveMetrics.completedServices : services.filter(s => s.status === 'Completed').length;
-  const totalClients = liveMetrics.totalClients !== undefined ? liveMetrics.totalClients : clients.length;
-  const pendingQuotes = quotes.filter(q => q.status === 'Requested').length;
+  const pendingDocs = liveMetrics.pendingDocsCount || 0;
+  const rejectedDocs = liveMetrics.rejectedDocsCount || 0;
+  const activeServices = liveMetrics.activeServices || 0;
+  const completedServices = liveMetrics.completedServices || 0;
+  const totalClients = liveMetrics.totalClients || recentClients.length;
+  const pendingQuotes = liveMetrics.pendingQuotesCount || 0;
   const totalPending = liveMetrics.totalPending !== undefined ? Number(liveMetrics.totalPending) : 0;
 
   return `
@@ -132,18 +129,18 @@ export async function renderAdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                ${clients.map(c => `
+                ${recentClients.map(c => `
                   <tr>
                     <td style="font-weight: 600;">
-                      <a href="#admin/clients/${c.id}">${c.companyName}</a>
-                      <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">${c.id}</div>
+                      <a href="#admin/clients/${c.clientId || c.id}">${c.companyName || c.name}</a>
+                      <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">${c.clientId || c.id}</div>
                     </td>
-                    <td>${c.contactPerson}<br><span style="font-size: 0.75rem; color: var(--text-muted);">${c.mobile}</span></td>
-                    <td>${c.state}</td>
-                    <td><span class="badge badge-info">Active</span></td>
-                    <td style="font-weight: 700; color: var(--error-main);">₹9,500 Due</td>
+                    <td>${c.contactPerson || c.contactName || c.email}<br><span style="font-size: 0.75rem; color: var(--text-muted);">${c.mobile || c.phone || ''}</span></td>
+                    <td>${c.state || 'N/A'}</td>
+                    <td><span class="badge badge-info">${c.status || 'Active'}</span></td>
+                    <td style="font-weight: 700; color: var(--text-main);">${c.email}</td>
                     <td>
-                      <a href="#admin/clients/${c.id}" class="btn btn-secondary btn-sm">Manage Client</a>
+                      <a href="#admin/clients/${c.clientId || c.id}" class="btn btn-secondary btn-sm">Manage Client</a>
                     </td>
                   </tr>
                 `).join('')}

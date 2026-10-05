@@ -69,6 +69,8 @@ export function renderHeader(title = 'Dashboard', breadcrumbs = []) {
   `;
 }
 
+let headerEventsBound = false;
+
 export function bindHeaderEvents() {
   const toggleBtn = document.querySelector('.js-toggle-notifs-btn');
   const dropdown = document.querySelector('.js-notif-dropdown');
@@ -78,18 +80,8 @@ export function bindHeaderEvents() {
 
   if (!toggleBtn || !dropdown) return;
 
-  // Initial unread count poll
-  notificationService.getNotifications().then(notifs => {
-    const unread = notifs.filter(n => !n.isRead).length;
-    if (badge) {
-      if (unread > 0) {
-        badge.textContent = unread > 99 ? '99+' : unread;
-        badge.style.display = 'block';
-      } else {
-        badge.style.display = 'none';
-      }
-    }
-  }).catch(() => {});
+  if (headerEventsBound) return;
+  headerEventsBound = true;
 
   toggleBtn.addEventListener('click', async (e) => {
     e.stopPropagation();
