@@ -66,7 +66,16 @@ export async function renderAdminClients() {
               </tr>
             </thead>
             <tbody>
-              ${clients.map(c => {
+              ${clients.length === 0 ? `
+                <tr>
+                  <td colspan="8" style="text-align: center; padding: 3.5rem 1rem; color: var(--text-muted);">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">👥</div>
+                    <div style="font-weight: 700; font-size: 1.05rem; margin-bottom: 0.35rem; color: #f8fafc;">No registered clients found</div>
+                    <div style="font-size: 0.85rem; max-width: 400px; margin: 0 auto 1.25rem;">Onboard your first client account using the button above to begin managing services and tracking compliances.</div>
+                    <button class="btn btn-primary btn-sm js-open-create-client-wizard">${icons.plus} Create First Client</button>
+                  </td>
+                </tr>
+              ` : clients.map(c => {
                 const clientServices = services.filter(s => s.clientId === c.id);
                 const activeCount = clientServices.filter(s => s.status !== 'Completed').length;
 

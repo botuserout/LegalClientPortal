@@ -8,17 +8,21 @@ import { renderStatusBadge, renderProgressBar, icons } from '../../ui/components
 
 export async function renderClientDashboard() {
   const currentUser = authService.getCurrentUser();
-  const clientId = currentUser ? currentUser.clientId : 'CL001';
+  const clientId = currentUser ? (currentUser.clientId || currentUser.userId) : null;
 
   const data = await clientService.getClientDashboard(clientId);
-  const client = data.client || { companyName: 'ABC Technologies Pvt Ltd', contactPerson: 'Rahul Mehta' };
-  const metrics = data.metrics;
-  const services = data.services;
+  const client = data.client || {
+    id: clientId || 'Pending',
+    companyName: currentUser?.companyName || currentUser?.name || 'Valued Client',
+    contactPerson: currentUser?.contactPerson || currentUser?.name || 'Client'
+  };
+  const metrics = data.metrics || { activeServices: 0, completedServices: 0, pendingDocsCount: 0, totalDueAmount: 0 };
+  const services = data.services || [];
 
   return `
     <div class="page-header">
       <div>
-        <h1 class="page-title">Good morning, ${client.contactPerson || client.companyName}</h1>
+        <h1 class="page-title">Welcome, ${client.contactPerson || client.companyName}</h1>
         <p class="page-subtitle">Track your Legal Sthal services and application progress in real-time.</p>
       </div>
       <div class="page-actions">
@@ -76,12 +80,21 @@ export async function renderClientDashboard() {
           ${icons.services} My Purchased Services
         </div>
         <span style="font-size: 0.8125rem; color: var(--text-muted); font-weight: 500;">
-          All services linked to Client ID: <strong>${client.id || 'CL001'}</strong>
+          All services linked to Client ID: <strong>${client.id || 'New Client'}</strong>
         </span>
       </div>
       <div class="card-body">
         <div class="grid-3">
-          ${services.map(srv => {
+          ${services.length === 0 ? `
+            <div class="empty-state" style="grid-column: 1 / -1; padding: 3rem 1.5rem; text-align: center;">
+              <div class="empty-icon">${icons.services}</div>
+              <h3 class="empty-title" style="margin-top: 0.75rem;">No Active Services Yet</h3>
+              <p class="empty-desc" style="max-width: 480px; margin: 0.5rem auto 1.25rem;">You have not enrolled in any services yet. Explore our comprehensive catalog to get started with incorporation, GST, compliance, or trademarks.</p>
+              <a href="#client/new-service" class="btn btn-primary">
+                ${icons.plus} Avail New Service
+              </a>
+            </div>
+          ` : services.map(srv => {
             const currentStageObj = srv.stages[srv.currentStageIndex] || srv.stages[0];
             const hasActionNeeded = srv.documents && srv.documents.some(d => d.status === 'Rejected');
 

@@ -47,8 +47,8 @@ export function renderClientRegister() {
       </div>
 
       <!-- Right Side Registration Form Card -->
-      <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 2.5rem 1.5rem; background-color: #0b1325; overflow-y: auto;">
-        <div style="width: 100%; max-width: 480px; background-color: #0f172a; padding: 2.5rem; border-radius: 20px; border: 1px solid rgba(212, 175, 55, 0.25); box-shadow: 0 20px 48px -12px rgba(0, 0, 0, 0.85), 0 0 25px rgba(212, 175, 55, 0.1);">
+      <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 2.5rem 1.5rem; background-color: #0b1325;">
+        <div class="login-card-container" style="width: 100%; max-width: 480px; background-color: #0f172a; padding: 2.5rem; border-radius: 20px; border: 1px solid rgba(212, 175, 55, 0.25); box-shadow: 0 20px 48px -12px rgba(0, 0, 0, 0.85), 0 0 25px rgba(212, 175, 55, 0.1);">
           
           <div style="margin-bottom: 1.75rem;">
             <h2 style="font-family: var(--font-heading); font-size: 1.75rem; font-weight: 700; color: #ffffff;">Create Account</h2>

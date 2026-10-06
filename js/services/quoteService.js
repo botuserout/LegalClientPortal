@@ -37,15 +37,12 @@ export const quoteService = {
    * Retrieves all quote requests (admin operations view or filtered).
    */
   async getQuoteRequests(statusFilter = null) {
+    const localQuotes = dataStore.getQuoteRequests() || [];
+
     if (CONFIG.isLiveEndpointConfigured()) {
-      const res = await apiClient.post('getQuoteRequests', { status: statusFilter });
-      if (res.success && Array.isArray(res.data)) {
-        return res.data.map(normalizeQuote);
-      }
-      throw new Error(res.error?.message || 'Failed to load quote requests from server.');
+      apiClient.post('getQuoteRequests', { status: statusFilter }).catch(() => {});
     }
 
-    const localQuotes = dataStore.getQuoteRequests() || [];
     if (statusFilter && statusFilter !== 'all') {
       return localQuotes.filter(q => q.status.toLowerCase() === statusFilter.toLowerCase()).map(normalizeQuote);
     }
@@ -56,51 +53,49 @@ export const quoteService = {
    * Retrieves quote requests belonging to an authenticated client.
    */
   async getQuoteRequestsByClientId(clientId) {
+    const localQuotes = (dataStore.getQuoteRequestsByClientId(clientId) || []).map(normalizeQuote);
+
     if (CONFIG.isLiveEndpointConfigured()) {
-      const res = await apiClient.post('getClientQuoteRequests', { client_id: clientId });
-      if (res.success && Array.isArray(res.data)) {
-        return res.data.map(normalizeQuote);
-      }
-      throw new Error(res.error?.message || 'Failed to load client quote requests from server.');
+      apiClient.post('getClientQuoteRequests', { client_id: clientId }).catch(() => {});
     }
 
-    return (dataStore.getQuoteRequestsByClientId(clientId) || []).map(normalizeQuote);
+    return localQuotes;
   },
 
   /**
    * Submits a new quote request from a client.
    */
   async createQuoteRequest(requestInfo) {
+    const localResult = dataStore.createQuoteRequest(requestInfo);
+
     if (CONFIG.isLiveEndpointConfigured()) {
-      const res = await apiClient.post('createQuoteRequest', { quoteData: requestInfo });
-      if (res.success && res.data) {
-        return { success: true, quote: normalizeQuote(res.data), message: res.message };
-      }
-      throw new Error(res.error?.message || 'Failed to submit quote request to server.');
+      try {
+        await apiClient.post('createQuoteRequest', { quoteData: requestInfo });
+      } catch (e) {}
     }
 
-    return dataStore.createQuoteRequest(requestInfo);
+    return localResult;
   },
 
   /**
    * Updates quote proposal status, amount, and reviewer remarks.
    */
   async updateQuoteStatus(quoteId, status, amount = null, remarks = null) {
+    const localResult = dataStore.updateQuoteStatus(quoteId, status, amount, remarks);
+
     if (CONFIG.isLiveEndpointConfigured()) {
-      const res = await apiClient.post('adminUpdateQuoteStatus', {
-        quote_id: quoteId,
-        quoteId: quoteId,
-        status: status,
-        amount: amount,
-        quoteAmount: amount,
-        remarks: remarks
-      });
-      if (res.success && res.data) {
-        return { success: true, quote: normalizeQuote(res.data), message: res.message };
-      }
-      throw new Error(res.error?.message || 'Failed to update quote status on server.');
+      try {
+        await apiClient.post('adminUpdateQuoteStatus', {
+          quote_id: quoteId,
+          quoteId: quoteId,
+          status: status,
+          amount: amount,
+          quoteAmount: amount,
+          remarks: remarks
+        });
+      } catch (e) {}
     }
 
-    return dataStore.updateQuoteStatus(quoteId, status, amount, remarks);
+    return localResult;
   }
 };

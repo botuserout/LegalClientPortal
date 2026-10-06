@@ -42,10 +42,23 @@ import { renderAdminNotifications, bindAdminNotificationEvents } from './views/a
 import { renderAdminCrmSync, bindAdminCrmSyncEvents } from './views/admin/crmSyncView.js';
 import { renderAdminSettings, bindAdminSettingsEvents } from './views/admin/settingsView.js';
 
+// Suppress noisy browser extension errors (e.g. password managers, autofill plugins)
+window.addEventListener('unhandledrejection', (event) => {
+  if (event?.reason?.message && typeof event.reason.message === 'string') {
+    if (
+      event.reason.message.includes('A listener indicated an asynchronous response') ||
+      event.reason.message.includes('message channel closed')
+    ) {
+      event.preventDefault();
+    }
+  }
+});
+
 class App {
   constructor() {
     this.root = document.getElementById('app-root');
     this.currentRoute = 'client/dashboard';
+    window.appInstance = this;
   }
 
   async init() {
@@ -66,8 +79,12 @@ class App {
 
   navigate(route) {
     const targetHash = `#${route}`;
-    if (window.location.hash === targetHash) return;
+    if (window.location.hash === targetHash) {
+      this.handleRoute();
+      return;
+    }
     window.location.hash = targetHash;
+    this.handleRoute();
   }
 
   async handleRoute() {
@@ -92,6 +109,10 @@ class App {
     }
 
     // 2. Render Public & Dedicated Auth Screens
+    if (cleanRoute === 'client/login' || cleanRoute === 'client/register' || cleanRoute === 'admin/login' || cleanRoute === 'client/change-password' || cleanRoute === 'client/forgot-password' || cleanRoute === 'client/reset-password') {
+      document.body.classList.remove('has-demo-bar');
+    }
+
     if (cleanRoute === 'client/login') {
       this.root.innerHTML = renderClientLogin();
       bindClientLoginEvents((route) => this.navigate(route));
@@ -235,45 +256,89 @@ class App {
       viewHtml = `<div class="empty-state"><h3>Something went wrong</h3><p>${e.message}</p></div>`;
     }
 
-    // 4. Assemble standard authenticated layout shell
-    this.root.innerHTML = `
-      ${renderDemoBar(this.currentRoute)}
-      <div class="layout-wrapper">
-        ${renderSidebar(this.currentRoute)}
-        <div class="main-wrapper">
-          ${renderHeader(pageTitle, breadcrumbs)}
-          <main class="content-area">
-            ${viewHtml}
-          </main>
+    // 4. Instant DOM Update: If layout shell already exists, update only content-area and active states
+    const existingLayout = this.root.querySelector('.layout-wrapper');
+    const existingContentArea = this.root.querySelector('.content-area');
+
+    if (existingLayout && existingContentArea) {
+      // Fast path: update content area, header and sidebar active classes directly (0ms layout preserve)
+      existingContentArea.innerHTML = viewHtml;
+
+      // Update sidebar active link
+      const sidebarLinks = this.root.querySelectorAll('.nav-item');
+      sidebarLinks.forEach(link => {
+        const href = link.getAttribute('href') || '';
+        const targetRoute = href.replace(/^#\/?/, '').split('?')[0];
+        if (targetRoute && (cleanRoute === targetRoute || cleanRoute.startsWith(targetRoute + '/'))) {
+          link.classList.add('active');
+        } else if (href.startsWith('#')) {
+          link.classList.remove('active');
+        }
+      });
+
+      // Update header title and breadcrumbs
+      const headerTitle = this.root.querySelector('.header-title');
+      if (headerTitle) headerTitle.textContent = pageTitle;
+      const breadcrumbEl = this.root.querySelector('.breadcrumb');
+      if (breadcrumbEl && breadcrumbs) {
+        breadcrumbEl.innerHTML = breadcrumbs.map((b, i) => 
+          i === breadcrumbs.length - 1 ? `<span class="current">${b}</span>` : `<span>${b}</span>`
+        ).join(' / ');
+      }
+    } else {
+      // Initial mount: Assemble standard authenticated layout shell
+      const demoBarHtml = renderDemoBar(this.currentRoute);
+      document.body.classList.toggle('has-demo-bar', !!demoBarHtml);
+
+      this.root.innerHTML = `
+        ${demoBarHtml}
+        <div class="layout-wrapper">
+          ${renderSidebar(this.currentRoute)}
+          <div class="main-wrapper">
+            ${renderHeader(pageTitle, breadcrumbs)}
+            <main class="content-area">
+              ${viewHtml}
+            </main>
+          </div>
         </div>
-      </div>
-    `;
+      `;
+    }
 
     // 5. Bind global navigation and interactive handlers
     this.bindGlobalEvents();
   }
 
   bindGlobalEvents() {
-    // Mobile Drawer Hamburger Toggle
+    // Mobile Drawer Hamburger Toggle & Close Handlers
     const toggleBtn = document.getElementById('mobile-menu-toggle');
     const sidebar = document.getElementById('app-sidebar');
     const backdrop = document.getElementById('sidebar-backdrop');
+    const closeBtn = document.getElementById('sidebar-close-btn');
 
-    if (toggleBtn && sidebar && backdrop) {
+    if (sidebar && backdrop) {
       const openDrawer = () => {
         sidebar.classList.add('open');
         backdrop.classList.add('active');
+        document.body.classList.add('drawer-open');
       };
       const closeDrawer = () => {
         sidebar.classList.remove('open');
         backdrop.classList.remove('active');
+        document.body.classList.remove('drawer-open');
       };
 
-      toggleBtn.onclick = openDrawer;
+      if (toggleBtn) toggleBtn.onclick = openDrawer;
+      if (closeBtn) closeBtn.onclick = closeDrawer;
       backdrop.onclick = closeDrawer;
 
       sidebar.querySelectorAll('.nav-item').forEach(link => {
         link.addEventListener('click', closeDrawer);
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+          closeDrawer();
+        }
       });
     }
 
@@ -307,6 +372,32 @@ class App {
     bindAdminSettingsEvents();
   }
 }
+
+// Global Instant Click Feedback for all buttons, tabs, and navigation links
+document.addEventListener('click', (e) => {
+  const navItem = e.target.closest('.nav-item');
+  if (navItem && navItem.getAttribute('href')?.startsWith('#')) {
+    const route = navItem.getAttribute('href').replace(/^#\/?/, '').trim();
+    if (route) {
+      e.preventDefault();
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      navItem.classList.add('active');
+      if (window.appInstance) {
+        window.appInstance.navigate(route);
+      } else {
+        window.location.hash = `#${route}`;
+      }
+      return;
+    }
+  }
+
+  const btn = e.target.closest('.btn, button');
+  if (btn && !btn.disabled) {
+    btn.style.transition = 'transform 0.05s ease';
+    btn.style.transform = 'scale(0.96)';
+    setTimeout(() => { btn.style.transform = ''; }, 100);
+  }
+}, true);
 
 // Instantiate and launch application on DOM ready
 document.addEventListener('DOMContentLoaded', () => {

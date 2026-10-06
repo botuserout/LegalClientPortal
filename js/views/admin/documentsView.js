@@ -44,7 +44,15 @@ export async function renderAdminDocuments() {
               </tr>
             </thead>
             <tbody>
-              ${docs.map(doc => `
+              ${docs.length === 0 ? `
+                <tr>
+                  <td colspan="6" style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">📄</div>
+                    <div style="font-weight: 700; margin-bottom: 0.25rem; color: #f8fafc;">No documents submitted yet</div>
+                    <div style="font-size: 0.8125rem;">Client-submitted identity and verification proofs will appear here for review.</div>
+                  </td>
+                </tr>
+              ` : docs.map(doc => `
                 <tr data-status="${doc.status}">
                   <td style="font-weight: 600; padding-left: 1.75rem;">${doc.clientName}</td>
                   <td>

@@ -8,9 +8,9 @@ import { renderStatusBadge, renderTimeline, icons } from '../../ui/components.js
 
 export async function renderClientQuoteRequests() {
   const user = authService.getCurrentUser();
-  const clientId = user ? user.clientId : 'CL001';
+  const clientId = user ? (user.clientId || user.userId) : null;
 
-  const quotes = await quoteService.getQuoteRequestsByClientId(clientId);
+  const quotes = clientId ? await quoteService.getQuoteRequestsByClientId(clientId) : [];
 
   return `
     <div class="page-header">

@@ -53,22 +53,16 @@ export function bindDemoBarEvents(routerNavigate) {
     return;
   }
   document.addEventListener('click', (e) => {
-    if (e.target.closest('.js-switch-client')) {
-      authService.switchRole('client', 'CL001');
-      toast.info('Switched View', 'Logged in as Client: ABC Technologies Pvt Ltd');
-      routerNavigate('client/dashboard');
-    }
-
-    if (e.target.closest('.js-switch-admin')) {
-      authService.switchRole('admin');
-      toast.info('Switched View', 'Logged in as Admin: Legal Sthal Operations');
-      routerNavigate('admin/dashboard');
+    if (e.target.closest('.js-logout-btn')) {
+      authService.logout();
+      toast.info('Signed Out', 'You have been safely signed out.');
+      routerNavigate('client/login');
     }
 
     if (e.target.closest('.js-reset-mock')) {
-      if (confirm('Reset prototype data state to initial default?')) {
+      if (confirm('Reset prototype data state to initial clean default?')) {
         dataStore.resetStore();
-        toast.success('Data Reset', 'All mock data has been reset to defaults.');
+        toast.success('Data Reset', 'All data has been reset to clean state.');
         window.location.reload();
       }
     }

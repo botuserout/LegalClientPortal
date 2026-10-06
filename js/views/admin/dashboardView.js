@@ -129,7 +129,15 @@ export async function renderAdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                ${recentClients.map(c => `
+                ${recentClients.length === 0 ? `
+                  <tr>
+                    <td colspan="6" style="text-align: center; padding: 2.5rem 1rem; color: var(--text-muted);">
+                      <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">📋</div>
+                      <div style="font-weight: 600; margin-bottom: 0.25rem; color: #f8fafc;">No registered clients yet</div>
+                      <div style="font-size: 0.8125rem;">Click "Create Client" to manually onboard your first client account.</div>
+                    </td>
+                  </tr>
+                ` : recentClients.map(c => `
                   <tr>
                     <td style="font-weight: 600;">
                       <a href="#admin/clients/${c.clientId || c.id}">${c.companyName || c.name}</a>

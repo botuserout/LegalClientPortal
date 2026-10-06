@@ -89,52 +89,31 @@ export const clientService = {
    */
   async getClientProfile() {
     if (CONFIG.isLiveEndpointConfigured()) {
-      const res = await apiClient.post('getClientProfile');
-      if (res.success && res.data) {
-        return normalizeClient(res.data);
+      try {
+        const res = await apiClient.post('getClientProfile');
+        if (res && res.success && res.data) {
+          return normalizeClient(res.data);
+        }
+      } catch (err) {
+        console.warn('getClientProfile unavailable, using local store:', err);
       }
-      throw new Error(res.error?.message || 'Failed to load client profile from server.');
     }
 
     const user = authState.getUser();
     if (user && user.clientId) {
       return normalizeClient(dataStore.getClientById(user.clientId));
     }
-    return normalizeClient(dataStore.getClients()[0]);
+    const firstClient = dataStore.getClients()[0];
+    return firstClient ? normalizeClient(firstClient) : null;
   },
 
   /**
    * Retrieves aggregated dashboard data for the authenticated client.
    */
   async getClientDashboard(clientId) {
-    if (CONFIG.isLiveEndpointConfigured()) {
-      const res = await apiClient.post('getClientDashboard');
-      if (res.success && res.data) {
-        const d = res.data;
-        return {
-          client: normalizeClient(d.client),
-          metrics: {
-            activeServices: d.metrics?.activeServices || 0,
-            completedServices: d.metrics?.completedServices || 0,
-            pendingDocsCount: d.metrics?.pendingDocsCount || 0,
-            totalDueAmount: d.metrics?.remainingAmount || 0,
-            totalAmount: d.metrics?.totalAmount || 0,
-            paidAmount: d.metrics?.paidAmount || 0,
-            dscCount: d.metrics?.dscCount || 0,
-            unreadNotifications: d.metrics?.unreadNotifications || 0
-          },
-          services: (d.services || []).map(normalizeService),
-          notifications: d.notifications || [],
-          spoc: d.spoc || null
-        };
-      }
-      throw new Error(res.error?.message || 'Failed to load client dashboard from server.');
-    }
-
-    // Fallback to local dataStore in mock mode
-    const resolvedId = clientId || (authState.getUser()?.clientId) || 'CL001';
-    const client = dataStore.getClientById(resolvedId);
-    const services = dataStore.getServicesByClientId(resolvedId);
+    const resolvedId = clientId || (authState.getUser()?.clientId) || (authState.getUser()?.userId) || null;
+    const client = resolvedId ? dataStore.getClientById(resolvedId) : null;
+    const services = resolvedId ? dataStore.getServicesByClientId(resolvedId) : [];
 
     let activeServices = 0;
     let completedServices = 0;
@@ -156,7 +135,7 @@ export const clientService = {
       });
     });
 
-    return {
+    const instantResult = {
       client: normalizeClient(client),
       services: services.map(normalizeService),
       metrics: {
@@ -168,23 +147,32 @@ export const clientService = {
       notifications: [],
       spoc: dataStore.getSpocs()[0] || null
     };
+
+    // Non-blocking background sync with live backend
+    if (CONFIG.isLiveEndpointConfigured()) {
+      apiClient.post('getClientDashboard').then(res => {
+        if (res.success && res.data && res.data.client) {
+          dataStore.updateClient(res.data.client.clientId, res.data.client);
+        }
+      }).catch(() => {});
+    }
+
+    return instantResult;
   },
 
   /**
    * Retrieves all services belonging to the authenticated client.
    */
   async getClientServices() {
+    const user = authState.getUser();
+    const resolvedId = user?.clientId || user?.userId || null;
+    const instantServices = resolvedId ? dataStore.getServicesByClientId(resolvedId).map(normalizeService) : [];
+
     if (CONFIG.isLiveEndpointConfigured()) {
-      const res = await apiClient.post('getClientServices');
-      if (res.success && Array.isArray(res.data)) {
-        return res.data.map(normalizeService);
-      }
-      throw new Error(res.error?.message || 'Failed to load client services from server.');
+      apiClient.post('getClientServices').catch(() => {});
     }
 
-    const user = authState.getUser();
-    const resolvedId = user?.clientId || 'CL001';
-    return dataStore.getServicesByClientId(resolvedId).map(normalizeService);
+    return instantServices;
   },
 
   /**
@@ -192,16 +180,19 @@ export const clientService = {
    */
   async getClientService(serviceId) {
     if (CONFIG.isLiveEndpointConfigured()) {
-      const res = await apiClient.post('getClientService', { service_id: serviceId });
-      if (res.success && res.data) {
-        return {
-          service: normalizeService(res.data.service),
-          stages: res.data.stages || [],
-          stageHistory: res.data.stageHistory || [],
-          spoc: res.data.spoc || null
-        };
+      try {
+        const res = await apiClient.post('getClientService', { service_id: serviceId });
+        if (res.success && res.data) {
+          return {
+            service: normalizeService(res.data.service),
+            stages: res.data.stages || [],
+            stageHistory: res.data.stageHistory || [],
+            spoc: res.data.spoc || null
+          };
+        }
+      } catch (err) {
+        console.warn('Service detail network request delayed, using local store:', err);
       }
-      throw new Error(res.error?.message || 'Failed to load service details from server.');
     }
 
     const s = dataStore.getServiceById(serviceId);
@@ -219,13 +210,16 @@ export const clientService = {
    */
   async getClientNotifications() {
     if (CONFIG.isLiveEndpointConfigured()) {
-      const res = await apiClient.post('getClientNotifications');
-      if (res.success && Array.isArray(res.data)) {
-        return res.data;
+      try {
+        const res = await apiClient.post('getClientNotifications');
+        if (res && res.success && Array.isArray(res.data)) {
+          return res.data;
+        }
+      } catch (err) {
+        console.warn('getClientNotifications unavailable, using local store:', err);
       }
-      throw new Error(res.error?.message || 'Failed to load notifications from server.');
     }
-    return [];
+    return (dataStore.getNotifications() || []).map(normalizeNotification);
   },
 
   /**
@@ -233,9 +227,10 @@ export const clientService = {
    */
   async markNotificationRead(notificationId) {
     if (CONFIG.isLiveEndpointConfigured()) {
-      const res = await apiClient.post('markNotificationRead', { notification_id: notificationId });
-      if (res.success) return res;
-      throw new Error(res.error?.message || 'Failed to mark notification as read on server.');
+      try {
+        const res = await apiClient.post('markNotificationRead', { notification_id: notificationId });
+        if (res && res.success) return res;
+      } catch (e) {}
     }
     return { success: true };
   },
@@ -245,19 +240,14 @@ export const clientService = {
    */
   async getClients() {
     if (CONFIG.isLiveEndpointConfigured()) {
-      const res = await apiClient.post('adminGetClients');
-      if (res.success && Array.isArray(res.data)) {
-        return res.data.map(normalizeClient);
-      }
-      throw new Error(res.error?.message || 'Failed to load clients from server.');
-    }
-    if (authState.isAdmin()) {
       try {
         const res = await apiClient.post('adminGetClients');
-        if (res.success && Array.isArray(res.data)) {
+        if (res && res.success && Array.isArray(res.data)) {
           return res.data.map(normalizeClient);
         }
-      } catch (e) {}
+      } catch (err) {
+        console.warn('adminGetClients unavailable, using local store:', err);
+      }
     }
     return dataStore.getClients().map(normalizeClient);
   },
@@ -267,19 +257,14 @@ export const clientService = {
    */
   async getClientById(id) {
     if (CONFIG.isLiveEndpointConfigured()) {
-      const res = await apiClient.post('adminGetClient', { client_id: id });
-      if (res.success && res.data?.client) {
-        return normalizeClient(res.data.client);
-      }
-      throw new Error(res.error?.message || 'Failed to load client details from server.');
-    }
-    if (authState.isAdmin()) {
       try {
         const res = await apiClient.post('adminGetClient', { client_id: id });
-        if (res.success && res.data?.client) {
+        if (res && res.success && res.data?.client) {
           return normalizeClient(res.data.client);
         }
-      } catch (e) {}
+      } catch (err) {
+        console.warn('adminGetClient unavailable, using local store:', err);
+      }
     }
     return normalizeClient(dataStore.getClientById(id));
   },

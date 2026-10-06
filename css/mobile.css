@@ -1,31 +1,123 @@
-/* Legal Sthal - Responsive & Mobile Styling (Taste-Skill System) */
+/* Legal Sthal - Comprehensive Responsive Design System (Mobile, Tablet & Multi-Device)
+ * Breakpoints:
+ * - Large Tablets / Laptops: 993px - 1200px
+ * - Medium & Portrait Tablets: 769px - 992px
+ * - Compact Tablets / Large Phablets: 641px - 768px
+ * - Standard Smartphones: 481px - 640px
+ * - Compact Phones: 361px - 480px
+ * - Ultra-compact Phones: <= 360px
+ */
 
-@media (max-width: 1024px) {
+/* ==========================================================================
+   GLOBAL LAYOUT & TOUCH SAFEGUARDS
+   ========================================================================== */
+html {
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-width: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  overflow-x: clip;
+  overflow-y: visible;
+  max-width: 100%;
+}
+
+body.drawer-open {
+  overflow: hidden !important;
+  touch-action: none;
+}
+
+#app-root,
+.layout-wrapper,
+.main-wrapper {
+  max-width: 100%;
+  width: 100%;
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+/* Sidebar Close Button (Hidden on Desktop by default) */
+.sidebar-close-btn {
+  display: none;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-muted);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-left: auto;
+  transition: all var(--transition-fast);
+}
+.sidebar-close-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+/* Safe Area Inset Support for Modern iOS / Android Devices */
+@supports (padding: env(safe-area-inset-bottom)) {
+  body {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+/* Prevent unwanted horizontal flex blowouts */
+img, svg, video, canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ==========================================================================
+   DESKTOP & LARGE TABLET TIER (993px - 1200px)
+   ========================================================================== */
+@media (max-width: 1200px) {
   :root {
     --sidebar-width: 250px;
   }
-  
+
   .content-area {
-    padding: 1.5rem;
+    padding: 1.75rem 1.5rem;
   }
 
-  .grid-4 { grid-template-columns: repeat(2, 1fr) !important; }
-  .grid-3 { grid-template-columns: repeat(2, 1fr) !important; }
+  .grid-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1.25rem !important;
+  }
+
+  .grid-3 {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1.25rem !important;
+  }
+
+  .grid-3 > [style*="grid-column: span 2"] {
+    grid-column: span 2 !important;
+  }
 }
 
-@media (max-width: 768px) {
-  /* Mobile Sidebar Drawer System */
+/* ==========================================================================
+   TABLET PORTRAIT & MEDIUM TABLETS (769px - 1024px)
+   (e.g., iPad 10th Gen 820px, iPad Air 820px, iPad Pro 11" 834px, Surface Go)
+   ========================================================================== */
+@media (max-width: 1024px) {
+  /* Off-canvas Sliding Drawer Navigation */
   .sidebar {
-    position: fixed;
+    position: fixed !important;
     top: 0 !important;
     bottom: 0 !important;
-    left: 0;
+    left: 0 !important;
     height: 100vh !important;
-    width: 280px !important;
-    z-index: 990 !important;
+    height: 100dvh !important;
+    width: 290px !important;
+    z-index: 1100 !important;
     transform: translateX(-100%);
-    transition: transform var(--transition-normal);
-    box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.9);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(212, 175, 55, 0.2);
+    border-right: 1px solid rgba(212, 175, 55, 0.3);
   }
 
   .sidebar.open {
@@ -34,16 +126,14 @@
 
   .sidebar-backdrop {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(6, 14, 31, 0.8);
-    backdrop-filter: blur(4px);
-    z-index: 980;
+    inset: 0;
+    background-color: rgba(6, 14, 31, 0.78);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 1050;
     opacity: 0;
     visibility: hidden;
-    transition: all var(--transition-normal);
+    transition: opacity 0.3s ease, visibility 0.3s ease;
   }
 
   .sidebar-backdrop.active {
@@ -51,55 +141,151 @@
     visibility: visible;
   }
 
-  .main-wrapper {
-    margin-left: 0 !important;
+  .sidebar-close-btn {
+    display: flex !important;
   }
 
+  /* Main Wrapper expands to 100% full width */
+  .main-wrapper {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Hamburger Menu Button is displayed in Topbar */
   .menu-toggle-btn {
     display: flex !important;
     align-items: center;
     justify-content: center;
+    background: #181f32;
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    border-radius: var(--radius-md);
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    color: #f8fafc;
+    transition: all var(--transition-fast);
+  }
+  .menu-toggle-btn:hover {
+    background: #222a3d;
+    border-color: #d4af37;
+    color: #ffffff;
   }
 
   .topbar {
-    padding: 0 1rem;
+    padding: 0 1.25rem;
     position: sticky;
-    top: var(--demo-bar-height, 44px) !important;
-    z-index: 800;
+    top: var(--demo-bar-height, 0px);
+    z-index: 900;
   }
 
-  .search-box {
-    display: none; /* Hide header search box on mobile for clean topbar */
+  .topbar-right {
+    gap: 0.85rem;
   }
 
-  .user-info {
-    display: none; /* Hide secondary name text in user badge on small screens */
+  .topbar .search-box {
+    width: 180px;
   }
 
   .content-area {
-    padding: 1rem 0.75rem;
+    padding: 1.5rem 1.25rem;
+    max-width: 100%;
   }
 
-  /* Hide Desktop Hero Banner on Login Pages */
+  /* Hide Desktop Hero Banner on Tablet Auth views */
   .desktop-only-banner {
     display: none !important;
   }
 
-  /* Form & Grid Collapses */
-  .grid-4, .grid-3, .grid-2 {
-    grid-template-columns: 1fr !important;
-    gap: 1rem !important;
+  /* Tablet Grids */
+  .grid-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1.15rem !important;
   }
 
+  .grid-3 {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1.15rem !important;
+  }
+
+  /* Stat Card Sizing */
+  .stat-card {
+    padding: 1.15rem 1.25rem;
+  }
+  .stat-value {
+    font-size: 1.55rem;
+  }
+
+  /* Tablet Table Smooth Scroll Container */
+  .table-container {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .data-table {
+    min-width: 600px;
+  }
+
+  /* Modal Dialog sizing on Tablets */
+  .modal-dialog {
+    max-width: 88vw !important;
+    margin: 1.5rem auto;
+  }
+}
+
+/* ==========================================================================
+   COMPACT TABLETS & LARGE MOBILE PHONES (641px - 768px)
+   (e.g., iPad Mini, Galaxy Fold unfolded, large phablets)
+   ========================================================================== */
+@media (max-width: 768px) {
+  .topbar {
+    padding: 0 1rem;
+    height: 64px;
+  }
+
+  .topbar .search-box {
+    display: none; /* Hide topbar search input to preserve space for notifications and profile */
+  }
+
+  .card-header .search-box,
+  .card-body .search-box {
+    display: flex !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .user-info {
+    display: none; /* Hide secondary profile name text, maintain circular avatar */
+  }
+
+  .user-profile-badge {
+    padding: 0.25rem;
+    border-radius: 50%;
+  }
+
+  .breadcrumbs {
+    font-size: 0.8125rem;
+  }
+
+  .content-area {
+    padding: 1.25rem 1rem;
+  }
+
+  /* Page Header stack */
   .page-header {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 0.85rem;
     margin-bottom: 1.25rem;
   }
 
   .page-title {
-    font-size: 1.4rem !important;
+    font-size: 1.45rem !important;
+    line-height: 1.2;
+  }
+
+  .page-subtitle {
+    font-size: 0.875rem;
   }
 
   .page-actions {
@@ -107,105 +293,86 @@
     flex-wrap: wrap;
     gap: 0.5rem;
   }
-  
+
   .page-actions .btn {
     flex: 1;
     min-height: 44px;
     justify-content: center;
   }
 
-  /* Card & Header Responsive Fixes */
+  /* Collapsing Grids & Grid-Column Span Overrides */
+  .grid-4,
+  .grid-3,
+  .grid-2 {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  /* Critical fix: When grids collapse to 1fr, cancel multi-column spans */
+  [style*="grid-column: span 2"],
+  [style*="grid-column:span 2"],
+  .grid-col-span-2 {
+    grid-column: span 1 !important;
+  }
+
+  /* Form & Input Responsive Rows */
+  .form-row-responsive {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+
+  /* Cards */
   .card-header {
+    padding: 1rem 1.15rem;
     flex-direction: column;
     align-items: stretch;
     gap: 0.75rem;
-    padding: 1rem;
-  }
-
-  .card-header .search-box,
-  .card-header select.form-control {
-    width: 100% !important;
   }
 
   .card-body {
-    padding: 1rem;
+    padding: 1.15rem;
   }
 
-  /* Data Table Momentum Touch Scroll */
-  .table-container {
-    width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+  .card-footer {
+    padding: 0.85rem 1.15rem;
+    flex-direction: column;
+    gap: 0.75rem;
   }
-
-  .data-table th, .data-table td {
-    padding: 0.75rem 0.85rem;
-    font-size: 0.8125rem;
-  }
-
-  /* Touch Target & Input Safari Zoom Prevention */
-  .btn {
-    min-height: 44px;
-  }
-
-  .form-control {
-    font-size: 16px !important; /* Prevents auto-zoom on iOS inputs */
-    padding: 0.75rem 0.85rem;
-  }
-
-  /* Modal Responsive Sheet */
-  .modal-dialog {
-    max-width: 94vw !important;
-    margin: 0.5rem auto;
-    max-height: 92vh;
-  }
-
-  .modal-header {
-    padding: 1rem;
-  }
-
-  .modal-body {
-    padding: 1rem;
-  }
-
-  .modal-footer {
-    padding: 0.85rem 1rem;
-    flex-direction: column-reverse;
-    gap: 0.5rem;
-  }
-
-  .modal-footer .btn {
+  .card-footer .btn {
     width: 100%;
   }
 
-  /* Wizard Multi-Step Header on Mobile */
-  .wizard-steps {
-    gap: 0.25rem;
-  }
-
-  .wizard-step-label {
-    font-size: 0.65rem;
-    text-align: center;
-  }
-
-  /* Service & Component Cards */
+  /* Document QR Code Submission Card */
   .qr-doc-card {
     flex-direction: column;
     text-align: center;
-    padding: 1.25rem 1rem;
+    padding: 1.35rem 1.15rem;
+    gap: 1.25rem;
   }
 
   .qr-doc-info {
     width: 100%;
   }
 
+  .qr-box-container {
+    margin: 0 auto;
+  }
+
+  /* SPOC Support Cards */
   .spoc-card {
     flex-direction: column;
     text-align: center;
+    padding: 1.25rem 1rem;
+    gap: 1rem;
+  }
+
+  .spoc-avatar {
+    margin: 0 auto;
   }
 
   .spoc-contact {
     justify-content: center;
+    gap: 0.5rem;
   }
 
   .spoc-actions {
@@ -216,24 +383,147 @@
 
   .spoc-actions .btn {
     flex: 1;
+    min-height: 44px;
   }
 
+  /* Celebration Completion Banner */
   .celebration-banner {
-    padding: 1.25rem 1rem;
+    padding: 1.5rem 1.15rem;
   }
 
   .celebration-actions {
     flex-direction: column;
     width: 100%;
+    gap: 0.75rem;
   }
 
   .celebration-actions .btn {
     width: 100%;
+    min-height: 44px;
   }
 
+  /* Catalog Category Tabs & Search Bar */
+  .category-tabs-container {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+    scrollbar-width: thin;
+    padding-bottom: 0.35rem;
+  }
+
+  .category-tabs-container .btn {
+    flex-shrink: 0;
+  }
+
+  /* Interactive Service Stage Timeline */
+  .timeline-container {
+    padding-left: 1.25rem;
+  }
+  .timeline-container::before {
+    left: 10px;
+  }
+  .step-node {
+    left: -1.25rem;
+    width: 22px;
+    height: 22px;
+    font-size: 0.7rem;
+  }
+
+  /* Modals Sheet Mode */
+  .modal-dialog {
+    width: 94vw !important;
+    max-width: 94vw !important;
+    margin: 0.75rem auto;
+    max-height: 92vh;
+  }
+
+  .modal-dialog .grid-2 {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+
+  .modal-header {
+    padding: 1rem 1.15rem;
+  }
+
+  .modal-body {
+    padding: 1rem 1.15rem;
+  }
+
+  .modal-footer {
+    padding: 0.85rem 1.15rem;
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+  }
+
+  .modal-footer .btn {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  /* Notification Dropdown Positioning (Viewport-Constrained) */
+  .notif-dropdown {
+    position: fixed !important;
+    top: calc(var(--demo-bar-height, 0px) + 64px + 8px) !important;
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    max-width: calc(100vw - 24px) !important;
+    margin: 0 auto !important;
+    box-shadow: 0 16px 40px -4px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(212, 175, 55, 0.25) !important;
+    z-index: 1200 !important;
+  }
+
+  /* Toast Container */
+  #toast-container {
+    right: 1rem;
+    left: 1rem;
+    bottom: 1rem;
+    width: auto;
+    max-width: calc(100vw - 2rem);
+  }
+
+  .toast {
+    width: 100%;
+  }
+
+  /* iOS Auto-Zoom Prevention */
+  .form-control,
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="tel"],
+  input[type="number"],
+  select,
+  textarea {
+    font-size: 16px !important; /* Prevents iOS Safari 16px threshold auto-zoom */
+    padding: 0.75rem 0.85rem;
+    min-height: 44px;
+  }
+}
+
+/* ==========================================================================
+   STANDARD SMARTPHONES (481px - 640px)
+   ========================================================================== */
+@media (max-width: 640px) {
+  /* Demo Bar Compact Formatting */
   .demo-workflow-bar {
-    padding: 0 0.75rem;
+    padding: 0 0.85rem;
     font-size: 0.75rem;
+  }
+
+  .demo-text {
+    display: none !important; /* Hide long user email string on mobile */
+  }
+
+  .demo-bar-left {
+    gap: 0.5rem;
+  }
+
+  .demo-tag {
+    font-size: 0.6875rem;
+    padding: 0.15rem 0.4rem;
   }
 
   .demo-bar-actions {
@@ -241,26 +531,258 @@
   }
 
   .demo-btn {
-    padding: 0.2rem 0.45rem;
+    padding: 0.25rem 0.5rem;
     font-size: 0.7rem;
+  }
+
+  /* Breadcrumbs Truncation */
+  .breadcrumbs {
+    max-width: 160px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .breadcrumbs span:not(:last-child):not(.crumb-sep) {
+    display: none; /* Show only current view name on small header */
+  }
+
+  /* Service Card Details */
+  .service-card-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .service-financials {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.65rem;
+  }
+  .service-financials .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Filter Tab Row */
+  #client-service-filter-tabs,
+  #doc-filter-tabs {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+  #client-service-filter-tabs .btn,
+  #doc-filter-tabs .btn {
+    flex: 1;
+    min-width: 80px;
+    padding: 0.45rem 0.5rem;
+    font-size: 0.75rem;
+    text-align: center;
+  }
+
+  /* Admin Table & Filter Select Dropdowns */
+  #client-filter-state,
+  #admin-category-select,
+  .card-header select {
+    width: 100% !important;
   }
 }
 
+/* ==========================================================================
+   COMPACT SMARTPHONES (361px - 480px)
+   (e.g., iPhone 13/14/15/16 Pro, Galaxy S24, Pixel 8)
+   ========================================================================== */
 @media (max-width: 480px) {
+  .topbar {
+    padding: 0 0.75rem;
+    height: 58px;
+  }
+
+  .content-area {
+    padding: 1rem 0.75rem;
+  }
+
   .page-title {
     font-size: 1.25rem !important;
   }
-  
-  .stat-card {
-    padding: 1rem;
+
+  .page-subtitle {
+    font-size: 0.8125rem;
   }
 
+  /* Stat cards */
+  .stat-card {
+    padding: 0.95rem 1rem;
+  }
+  .stat-label {
+    font-size: 0.7rem;
+  }
   .stat-value {
     font-size: 1.35rem !important;
   }
+  .stat-sub {
+    font-size: 0.72rem;
+  }
+
+  .stat-icon {
+    width: 42px;
+    height: 42px;
+  }
+  .stat-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Auth Screens (Login / Register / Forgot Password) */
+  .login-card-container,
+  div[style*="max-width: 440px"],
+  div[style*="max-width: 480px"] {
+    padding: 1.5rem 1.15rem !important;
+    border-radius: 14px !important;
+    margin: 0 auto;
+  }
+
+  /* Touch buttons */
+  .btn {
+    padding: 0.55rem 0.85rem;
+    font-size: 0.8125rem;
+    min-height: 44px;
+  }
+
+  .btn-sm {
+    padding: 0.4rem 0.65rem;
+    font-size: 0.75rem;
+    min-height: 38px;
+  }
+
+  /* Data Table Sizing */
+  .data-table th,
+  .data-table td {
+    padding: 0.65rem 0.75rem;
+    font-size: 0.78125rem;
+  }
+
+  /* Modals */
+  .modal-dialog {
+    width: 96vw !important;
+    max-width: 96vw !important;
+    margin: 0.5rem auto;
+  }
+
+  .modal-header {
+    padding: 0.85rem 1rem;
+  }
+  .modal-title {
+    font-size: 1rem;
+  }
+
+  .modal-body {
+    padding: 0.85rem 1rem;
+  }
+
+  .modal-footer {
+    padding: 0.75rem 1rem;
+  }
+
+  /* Multi-Step Wizard inside Modal */
+  .wizard-step-label {
+    font-size: 0.65rem;
+  }
+  .wizard-step-num {
+    width: 28px;
+    height: 28px;
+    font-size: 0.75rem;
+  }
+
+  /* Notification Bell Dropdown */
+  .notif-dropdown {
+    top: calc(var(--demo-bar-height, 0px) + 58px + 6px) !important;
+    left: 8px !important;
+    right: 8px !important;
+    width: auto !important;
+    max-width: calc(100vw - 16px) !important;
+    border-radius: var(--radius-md) !important;
+  }
+
+  /* Modal Backdrop mobile safe padding */
+  .modal-backdrop {
+    padding: 0.5rem !important;
+  }
+
+  /* Prevent rigid min-widths from causing horizontal scrolling on phones */
+  [style*="min-width: 280px"],
+  [style*="min-width: 260px"],
+  [style*="min-width: 250px"],
+  [style*="min-width: 200px"] {
+    min-width: 100% !important;
+  }
+
+  /* Empty state */
+  .empty-state {
+    padding: 2.25rem 1rem;
+  }
+  .empty-icon {
+    width: 46px;
+    height: 46px;
+  }
+  .empty-title {
+    font-size: 1.05rem;
+  }
+  .empty-desc {
+    font-size: 0.8125rem;
+  }
+}
+
+/* ==========================================================================
+   ULTRA-COMPACT PHONES (<= 360px)
+   (e.g., iPhone SE 1st gen, Galaxy Z Flip cover screen, compact devices)
+   ========================================================================== */
+@media (max-width: 360px) {
+  .topbar {
+    padding: 0 0.5rem;
+  }
+
+  .content-area {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .page-title {
+    font-size: 1.15rem !important;
+  }
+
+  .stat-card {
+    padding: 0.85rem 0.75rem;
+  }
+  .stat-value {
+    font-size: 1.25rem !important;
+  }
+
+  .logo-title {
+    font-size: 1rem;
+  }
+
+  .logo-badge {
+    width: 34px;
+    height: 34px;
+  }
+
+  .breadcrumbs {
+    max-width: 120px;
+    font-size: 0.7rem;
+  }
+
+  .sidebar {
+    width: 260px !important;
+  }
 
   .btn {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
+    padding: 0.45rem 0.65rem;
+  }
+
+  .notif-dropdown {
+    left: 4px !important;
+    right: 4px !important;
+    max-width: calc(100vw - 8px) !important;
   }
 }

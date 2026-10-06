@@ -8,9 +8,9 @@ import { renderStatusBadge, renderProgressBar, icons } from '../../ui/components
 
 export async function renderClientServices() {
   const user = authService.getCurrentUser();
-  const clientId = user ? user.clientId : 'CL001';
+  const clientId = user ? (user.clientId || user.userId) : null;
 
-  const services = await serviceService.getServicesByClientId(clientId);
+  const services = clientId ? await serviceService.getServicesByClientId(clientId) : [];
 
   return `
     <div class="page-header">
@@ -36,7 +36,16 @@ export async function renderClientServices() {
       </div>
       <div class="card-body">
         <div class="grid-3" id="client-services-grid">
-          ${services.map(srv => {
+          ${services.length === 0 ? `
+            <div class="empty-state" style="grid-column: 1 / -1; padding: 3rem 1.5rem; text-align: center;">
+              <div class="empty-icon">${icons.services}</div>
+              <h3 class="empty-title" style="margin-top: 0.75rem;">No Services Found</h3>
+              <p class="empty-desc" style="max-width: 480px; margin: 0.5rem auto 1.25rem;">You do not have any active or completed services under your account yet.</p>
+              <a href="#client/new-service" class="btn btn-primary">
+                ${icons.plus} Explore Service Catalog
+              </a>
+            </div>
+          ` : services.map(srv => {
             const currentStageObj = srv.stages[srv.currentStageIndex] || srv.stages[0];
             const hasAction = srv.documents && srv.documents.some(d => d.status === 'Rejected');
 

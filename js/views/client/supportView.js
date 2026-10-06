@@ -24,7 +24,12 @@ export async function renderClientSupport() {
           <h3 class="card-title">${icons.profile} Your Assigned Point of Contact</h3>
         </div>
         <div class="card-body">
-          ${renderSpocCard(primarySpoc)}
+          ${primarySpoc ? renderSpocCard(primarySpoc) : `
+            <div style="padding: 1.5rem; text-align: center; color: var(--text-muted);">
+              <div style="font-size: 1.75rem; margin-bottom: 0.5rem;">👤</div>
+              <p style="font-size: 0.875rem;">A dedicated compliance executive will be assigned to your account upon enrolling in a service.</p>
+            </div>
+          `}
         </div>
       </div>
 

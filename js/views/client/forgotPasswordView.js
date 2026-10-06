@@ -10,7 +10,7 @@ export function renderForgotPassword() {
   return `
     <div style="min-height: 100vh; display: flex; width: 100%; background-color: #0b1325; color: white;">
       <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem;">
-        <div style="width: 100%; max-width: 440px; background-color: #0f172a; padding: 2.5rem; border-radius: 20px; border: 1px solid rgba(212, 175, 55, 0.25); box-shadow: 0 20px 48px -12px rgba(0,0,0,0.85), 0 0 25px rgba(212, 175, 55, 0.1);">
+        <div class="login-card-container" style="width: 100%; max-width: 440px; background-color: #0f172a; padding: 2.5rem; border-radius: 20px; border: 1px solid rgba(212, 175, 55, 0.25); box-shadow: 0 20px 48px -12px rgba(0,0,0,0.85), 0 0 25px rgba(212, 175, 55, 0.1);">
           
           <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 2rem;">
             <div style="width: 46px; height: 46px; background-color: #ffffff; border-radius: 12px; display: flex; align-items: center; justify-content: center; padding: 5px; box-shadow: 0 4px 14px rgba(212, 175, 55, 0.3); border: 1px solid rgba(212, 175, 55, 0.4); flex-shrink: 0;">

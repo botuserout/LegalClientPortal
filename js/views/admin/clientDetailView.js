@@ -55,7 +55,16 @@ export async function renderAdminClientDetail(clientId) {
       </div>
       <div class="card-body">
         <div class="grid-3">
-          ${services.map(srv => {
+          ${services.length === 0 ? `
+            <div class="empty-state" style="grid-column: 1 / -1; padding: 3rem 1.5rem; text-align: center;">
+              <div class="empty-icon">${icons.services}</div>
+              <h3 class="empty-title">No Services Linked Yet</h3>
+              <p class="empty-desc" style="max-width: 440px; margin: 0.5rem auto 1.25rem;">This client has no service workflows yet. Click below to add a service to this client account.</p>
+              <button class="btn btn-primary js-open-add-service-modal" data-client-id="${client.id}" data-client-name="${client.companyName}">
+                ${icons.plus} Add First Service
+              </button>
+            </div>
+          ` : services.map(srv => {
             const currentStageObj = srv.stages[srv.currentStageIndex] || srv.stages[0];
 
             return `

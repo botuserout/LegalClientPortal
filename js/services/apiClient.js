@@ -18,7 +18,85 @@ import { normalizeApiError, ERROR_CODES } from '../utils/errors.js';
 
 let sessionExpiredCallback = null;
 
+// Read-only actions eligible for fast memory caching
+const READ_ACTIONS = new Set([
+  'adminGetDashboard',
+  'adminGetClients',
+  'adminGetClient',
+  'adminGetService',
+  'adminGetSpocs',
+  'getClientProfile',
+  'getClientDashboard',
+  'getClientServices',
+  'getClientService',
+  'getClientNotifications',
+  'adminGetCrmSync',
+  'getClientDocuments',
+  'getQuoteRequests',
+  'getClientQuoteRequests',
+  'adminGetNotificationHealth',
+  'getFormSubmissionConfig'
+]);
+
+// 3-minute TTL for cached reads
+const CACHE_TTL_MS = 180000;
+const memoryCache = new Map();
+
+function getProgressBar() {
+  let bar = document.getElementById('global-progress-bar');
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'global-progress-bar';
+    bar.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      width: 0%;
+      background: linear-gradient(90deg, #d4af37, #f3e5ab, #d4af37);
+      z-index: 99999;
+      transition: width 0.25s ease, opacity 0.3s ease;
+      box-shadow: 0 0 10px rgba(212, 175, 55, 0.7);
+      pointer-events: none;
+    `;
+    document.body.appendChild(bar);
+  }
+  return bar;
+}
+
+let activeRequests = 0;
+function startProgress() {
+  activeRequests++;
+  const bar = getProgressBar();
+  bar.style.opacity = '1';
+  bar.style.width = '30%';
+  setTimeout(() => {
+    if (activeRequests > 0) bar.style.width = '75%';
+  }, 150);
+}
+
+function finishProgress() {
+  activeRequests = Math.max(0, activeRequests - 1);
+  if (activeRequests === 0) {
+    const bar = getProgressBar();
+    bar.style.width = '100%';
+    setTimeout(() => {
+      if (activeRequests === 0) {
+        bar.style.opacity = '0';
+        setTimeout(() => { if (activeRequests === 0) bar.style.width = '0%'; }, 300);
+      }
+    }, 200);
+  }
+}
+
 export const apiClient = {
+  /**
+   * Clears the API read cache.
+   */
+  clearCache() {
+    memoryCache.clear();
+  },
+
   /**
    * Registers a global listener for session expiration.
    */
@@ -40,12 +118,32 @@ export const apiClient = {
   },
 
   /**
-   * Core request dispatcher.
+   * Core request dispatcher with intelligent caching & instant return.
    */
   async request(action, payload = {}, options = {}) {
     if (!action) {
       return { success: false, error: normalizeApiError({ code: ERROR_CODES.VALIDATION_ERROR, message: 'Action is required.' }) };
     }
+
+    const isRead = READ_ACTIONS.has(action);
+    const activeToken = authState.getToken();
+    const cacheKey = isRead ? `${action}:${JSON.stringify(payload)}:${activeToken || ''}` : null;
+
+    // Check fast cache first
+    if (isRead && !options.forceFresh && cacheKey && memoryCache.has(cacheKey)) {
+      const cached = memoryCache.get(cacheKey);
+      if (Date.now() - cached.timestamp < CACHE_TTL_MS) {
+        // Return cached result INSTANTLY (0ms)
+        return cached.data;
+      }
+    }
+
+    // Invalidate cache on mutations (non-read actions)
+    if (!isRead && action !== 'login' && action !== 'getMe') {
+      memoryCache.clear();
+    }
+
+    startProgress();
 
     const endpointUrl = CONFIG.getEndpointUrl();
     const timeoutMs = options.timeoutMs || CONFIG.REQUEST_TIMEOUT_MS;
@@ -54,7 +152,6 @@ export const apiClient = {
 
     // Merge session token if available and not explicitly provided
     const requestBody = Object.assign({ action }, payload);
-    const activeToken = authState.getToken();
     if (activeToken && !requestBody.token && !requestBody.reset_token) {
       requestBody.token = activeToken;
     }
@@ -70,13 +167,20 @@ export const apiClient = {
       });
 
       clearTimeout(timeoutId);
+      finishProgress();
 
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
-          this.notifySessionExpired();
+          if (activeToken && action !== 'login' && action !== 'register') {
+            this.notifySessionExpired();
+            return {
+              success: false,
+              error: normalizeApiError({ code: ERROR_CODES.SESSION_EXPIRED })
+            };
+          }
           return {
             success: false,
-            error: normalizeApiError({ code: ERROR_CODES.SESSION_EXPIRED })
+            error: normalizeApiError({ code: ERROR_CODES.AUTH_INVALID, message: 'Invalid email or password.' })
           };
         }
         return {
@@ -85,12 +189,20 @@ export const apiClient = {
         };
       }
 
-      const resJson = await response.json();
+      let resJson;
+      try {
+        resJson = await response.json();
+      } catch (jsonErr) {
+        return {
+          success: false,
+          error: normalizeApiError({ code: ERROR_CODES.SERVER_ERROR, message: 'Invalid response from server.' })
+        };
+      }
 
       // Check for backend session invalidation or expiration
       if (!resJson.success && resJson.error) {
         const errCode = resJson.error.code;
-        if (errCode === 'SESSION_EXPIRED' || errCode === 'AUTH_UNAUTHORIZED') {
+        if ((errCode === 'SESSION_EXPIRED' || errCode === 'AUTH_UNAUTHORIZED') && activeToken && action !== 'login') {
           this.notifySessionExpired();
         }
         return {
@@ -99,10 +211,19 @@ export const apiClient = {
         };
       }
 
+      // Store in memory cache for future instant returns
+      if (isRead && cacheKey && resJson.success) {
+        memoryCache.set(cacheKey, {
+          data: resJson,
+          timestamp: Date.now()
+        });
+      }
+
       return resJson;
 
     } catch (err) {
       clearTimeout(timeoutId);
+      finishProgress();
 
       const normalized = normalizeApiError(err);
       return {

@@ -96,7 +96,7 @@ export function renderTimeline(stages, currentStageIndex = 0) {
 }
 
 export function renderQRDocCard(serviceId, docList = []) {
-  const targetId = serviceId || 'SRV001';
+  const targetId = serviceId || 'General';
   const formUrl = `https://docs.google.com/forms/d/e/1FAIpQLSc_LegalSthal_DocCollection/viewform?usp=pp_url&entry.1001=${encodeURIComponent(targetId)}`;
   const qrImgUrl = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&margin=4&data=${encodeURIComponent(formUrl)}`;
 

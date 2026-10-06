@@ -6,7 +6,7 @@
 import { initialMockData } from '../mock/mockData.js';
 import { fullLegalSthalCatalog } from '../mock/fullServiceCatalog.js';
 
-const STORAGE_KEY = 'legalsthal_app_data_v1';
+const STORAGE_KEY = 'legalsthal_app_data_v2';
 const LISTENERS = new Set();
 
 class DataStore {
@@ -16,12 +16,14 @@ class DataStore {
 
   loadData() {
     try {
+      // Automatically purge legacy mock data from prototype
+      localStorage.removeItem('legalsthal_app_data_v1');
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         return JSON.parse(saved);
       }
     } catch (e) {
-      console.warn('Failed to parse localStorage data, resetting to mock data.', e);
+      console.warn('Failed to parse localStorage data, resetting to clean data.', e);
     }
     this.saveData(initialMockData);
     return JSON.parse(JSON.stringify(initialMockData));
@@ -65,7 +67,11 @@ class DataStore {
 
   getClientByEmail(email) {
     if (!email) return null;
-    return (this.data.clients || []).find(c => c.email.toLowerCase().trim() === email.toLowerCase().trim()) || null;
+    return (this.data.clients || []).find(c => (c.email || '').toLowerCase().trim() === email.toLowerCase().trim()) || null;
+  }
+
+  addClient(clientInfo) {
+    return this.createClient(clientInfo);
   }
 
   createClient(clientInfo) {

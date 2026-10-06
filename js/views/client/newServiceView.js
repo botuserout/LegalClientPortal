@@ -304,7 +304,7 @@ async function reRenderCatalog() {
 }
 
 function triggerQuoteModal(serviceName) {
-  const user = authService.getCurrentUser() || { clientId: 'CL001', companyName: 'ABC Technologies Pvt Ltd', email: 'abc@gmail.com', contactPerson: 'Rahul Mehta' };
+  const user = authService.getCurrentUser() || { clientId: '', companyName: 'Valued Client', email: '', contactPerson: 'Valued Client', mobile: '' };
 
   modal.open({
     title: `Request Quote / Avail Service — ${serviceName}`,
@@ -318,11 +318,11 @@ function triggerQuoteModal(serviceName) {
         <div class="grid-2">
           <div class="form-group">
             <label class="form-label">Email</label>
-            <input type="email" class="form-control" id="qr-email" value="${user.email || 'client@legalsthal.com'}" readonly style="background-color: var(--bg-app);" />
+            <input type="email" class="form-control" id="qr-email" value="${user.email || ''}" readonly style="background-color: var(--bg-app);" />
           </div>
           <div class="form-group">
             <label class="form-label">Mobile</label>
-            <input type="text" class="form-control" id="qr-mobile" value="${user.mobile || '+91 98765 43210'}" required />
+            <input type="text" class="form-control" id="qr-mobile" value="${user.mobile || ''}" placeholder="+91 98765 43210" required />
           </div>
         </div>
 
@@ -364,7 +364,7 @@ function triggerQuoteModal(serviceName) {
         submitBtn.textContent = 'Submitting...';
 
         await quoteService.createQuoteRequest({
-          clientId: user.clientId || 'CL001',
+          clientId: user.clientId || user.userId || '',
           clientName: user.companyName || user.name || 'Client',
           serviceName: serviceName,
           companyType: 'Private Limited',

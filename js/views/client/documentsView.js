@@ -9,9 +9,9 @@ import { renderStatusBadge, renderQRDocCard, icons } from '../../ui/components.j
 
 export async function renderClientDocuments() {
   const user = authService.getCurrentUser();
-  const clientId = user ? user.clientId : 'CL001';
+  const clientId = user ? (user.clientId || user.userId) : null;
 
-  const services = await serviceService.getServicesByClientId(clientId);
+  const services = clientId ? await serviceService.getServicesByClientId(clientId) : [];
   const allDocs = [];
 
   services.forEach(srv => {
@@ -25,7 +25,7 @@ export async function renderClientDocuments() {
     });
   });
 
-  const primaryServiceId = services.length > 0 ? services[0].id : 'SRV001';
+  const primaryServiceId = services.length > 0 ? services[0].id : '';
 
   return `
     <div class="page-header">
@@ -62,7 +62,15 @@ export async function renderClientDocuments() {
               </tr>
             </thead>
             <tbody>
-              ${allDocs.map(doc => `
+              ${allDocs.length === 0 ? `
+                <tr>
+                  <td colspan="5" style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">📂</div>
+                    <div style="font-weight: 700; margin-bottom: 0.25rem; color: #f8fafc;">No documents required</div>
+                    <div style="font-size: 0.8125rem;">Required identity and compliance documents will appear here once you enroll in a service.</div>
+                  </td>
+                </tr>
+              ` : allDocs.map(doc => `
                 <tr>
                   <td>
                     <a href="#client/services/${doc.serviceId}" style="font-weight: 600;">

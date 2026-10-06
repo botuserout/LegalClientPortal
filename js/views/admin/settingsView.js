@@ -5,6 +5,7 @@
 
 import { icons } from '../../ui/components.js';
 import { apiClient } from '../../services/apiClient.js';
+import { authService } from '../../services/authService.js';
 import { toast } from '../../ui/toast.js';
 
 export async function renderAdminSettings() {
@@ -94,6 +95,45 @@ export async function renderAdminSettings() {
           <div id="connection-test-result" style="margin-top: 1rem; display: none;"></div>
         </div>
       </div>
+
+      <!-- Admin Account Security & Password -->
+      <div class="card" style="margin-top: 1.5rem; grid-column: span 2;">
+        <div class="card-header">
+          <h3 class="card-title">${icons.settings} Admin Account Security & Password</h3>
+        </div>
+        <div class="card-body">
+          <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 1.25rem;">
+            Update your administrator credentials for the Operations Console. Passwords must be at least 8 characters and include uppercase, lowercase, numbers, and special symbols.
+          </p>
+
+          <form id="admin-change-pwd-form" style="max-width: 580px;">
+            <div class="form-group">
+              <label class="form-label" for="admin-cur-pwd">Current Admin Password *</label>
+              <input type="password" id="admin-cur-pwd" class="form-control" placeholder="Enter current admin password" required autocomplete="current-password" />
+            </div>
+
+            <div class="grid-2">
+              <div class="form-group">
+                <label class="form-label" for="admin-new-pwd">New Password *</label>
+                <input type="password" id="admin-new-pwd" class="form-control" placeholder="Minimum 8 characters" required autocomplete="new-password" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="admin-confirm-pwd">Confirm New Password *</label>
+                <input type="password" id="admin-confirm-pwd" class="form-control" placeholder="Re-enter new password" required autocomplete="new-password" />
+              </div>
+            </div>
+
+            <div style="background: rgba(30, 41, 59, 0.5); padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1.25rem; border: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.8rem; color: #94a3b8;">
+              <span style="color: #cbd5e1; font-weight: 600;">Password Policy:</span> Minimum 8 characters, uppercase (A-Z), lowercase (a-z), number (0-9), and special symbol (!@#$%^&*).
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="admin-update-pwd-btn">
+              ${icons.check} Update Admin Password
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
   `;
 }
@@ -164,6 +204,45 @@ export function bindAdminSettingsEvents() {
           `;
           toast.info('Endpoint Status', res.message);
         }
+      }
+    };
+  }
+
+  // Admin Change Password Form Submission
+  const adminPwdForm = document.getElementById('admin-change-pwd-form');
+  if (adminPwdForm) {
+    adminPwdForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const cur = document.getElementById('admin-cur-pwd').value;
+      const p1 = document.getElementById('admin-new-pwd').value;
+      const p2 = document.getElementById('admin-confirm-pwd').value;
+      const btn = document.getElementById('admin-update-pwd-btn');
+
+      if (!cur) {
+        toast.error('Required', 'Please enter your current admin password.');
+        return;
+      }
+      if (!p1 || p1.length < 8) {
+        toast.error('Weak Password', 'Password must be at least 8 characters.');
+        return;
+      }
+      if (p1 !== p2) {
+        toast.error('Mismatch', 'New passwords do not match.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Updating Password...';
+
+      const res = await authService.changePassword(cur, p1, p2);
+      btn.disabled = false;
+      btn.innerHTML = `${icons.check} Update Admin Password`;
+
+      if (res.success) {
+        toast.success('Admin Password Updated', res.message || 'Administrator password updated successfully.');
+        adminPwdForm.reset();
+      } else {
+        toast.error('Password Update Failed', res.error?.message || 'Failed to update password. Please check your inputs.');
       }
     };
   }

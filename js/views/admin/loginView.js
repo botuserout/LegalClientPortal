@@ -7,10 +7,12 @@ import { authService } from '../../services/authService.js';
 import { toast } from '../../ui/toast.js';
 
 export function renderAdminLogin() {
+  const isExpired = window.location.hash.includes('expired=1');
+
   return `
     <div style="min-height: 100vh; display: flex; width: 100%; background-color: #0b1325; color: white;">
       <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem;">
-        <div style="width: 100%; max-width: 440px; background-color: #0f172a; padding: 2.5rem; border-radius: 20px; border: 1px solid rgba(212, 175, 55, 0.25); box-shadow: 0 20px 48px -12px rgba(0,0,0,0.85), 0 0 25px rgba(212, 175, 55, 0.1);">
+        <div class="login-card-container" style="width: 100%; max-width: 440px; background-color: #0f172a; padding: 2.5rem; border-radius: 20px; border: 1px solid rgba(212, 175, 55, 0.25); box-shadow: 0 20px 48px -12px rgba(0,0,0,0.85), 0 0 25px rgba(212, 175, 55, 0.1);">
           <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 2rem;">
             <div style="width: 46px; height: 46px; background-color: #ffffff; border-radius: 12px; display: flex; align-items: center; justify-content: center; padding: 5px; box-shadow: 0 4px 14px rgba(212, 175, 55, 0.3); border: 1px solid rgba(212, 175, 55, 0.4); flex-shrink: 0;">
               <img src="assets/logo.png" alt="Legal Sthal" style="width: 100%; height: 100%; object-fit: contain;" />
@@ -19,6 +21,11 @@ export function renderAdminLogin() {
               <h2 style="font-family: var(--font-heading); font-size: 1.45rem; font-weight: 700; color: #ffffff;">Legal Sthal</h2>
               <span style="font-size: 0.72rem; text-transform: uppercase; color: #f3e5ab; font-weight: 700; letter-spacing: 0.08em;">Internal Admin Portal</span>
             </div>
+          </div>
+
+          <!-- Session Expired Notification Banner -->
+          <div id="admin-session-expired-alert" style="display: ${isExpired ? 'block' : 'none'}; background-color: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1.25rem; font-size: 0.875rem; color: #fde68a;">
+            Your session has expired. Please sign in again to continue.
           </div>
 
           <!-- Live Inline Error Alert -->
@@ -70,6 +77,8 @@ export function bindAdminLoginEvents(routerNavigate) {
     });
   }
 
+  const expiredAlert = document.getElementById('admin-session-expired-alert');
+
   function showError(msg) {
     if (errorAlert) {
       errorAlert.textContent = msg;
@@ -81,6 +90,9 @@ export function bindAdminLoginEvents(routerNavigate) {
     if (errorAlert) {
       errorAlert.textContent = '';
       errorAlert.style.display = 'none';
+    }
+    if (expiredAlert) {
+      expiredAlert.style.display = 'none';
     }
   }
 

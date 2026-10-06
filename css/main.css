@@ -58,10 +58,22 @@
   --neutral-bg: #181f32;
   --neutral-text: #cbd5e1;
 
+  /* Aliases for UI Components & Header Notifications */
+  --bg-surface: var(--bg-card);
+  --bg-surface-alt: #181f32;
+  --border-color: var(--border-subtle);
+  --primary-main: var(--primary-500);
+
   /* Layout Dimensions */
   --sidebar-width: 270px;
   --topbar-height: 72px;
+  --demo-bar-height: 0px;
+}
+
+body.has-demo-bar,
+body:has(.demo-workflow-bar) {
   --demo-bar-height: 44px;
+}
 
   /* Precision Specular Radius */
   --radius-sm: 6px;
@@ -91,8 +103,10 @@
   padding: 0;
 }
 
-html, body {
-  height: 100%;
+html {
+  min-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
   font-family: var(--font-sans);
   background-color: var(--bg-app);
   color: var(--text-main);
@@ -101,9 +115,15 @@ html, body {
 }
 
 body {
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  overflow-x: hidden;
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  overflow-x: clip;
+  overflow-y: visible;
 }
 
 a {
@@ -132,6 +152,8 @@ input, select, textarea {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  width: 100%;
+  overflow: visible;
 }
 
 .layout-wrapper {
@@ -140,6 +162,8 @@ input, select, textarea {
   margin-top: var(--demo-bar-height);
   min-height: calc(100vh - var(--demo-bar-height));
   position: relative;
+  width: 100%;
+  overflow: visible;
 }
 
 /* Sidebar */
@@ -277,6 +301,7 @@ input, select, textarea {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  overflow: visible;
   transition: margin-left var(--transition-normal);
 }
 
@@ -291,7 +316,7 @@ input, select, textarea {
   padding: 0 2rem;
   position: sticky;
   top: var(--demo-bar-height);
-  z-index: 30;
+  z-index: 800;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
@@ -417,6 +442,18 @@ input, select, textarea {
   max-width: 1400px;
   width: 100%;
   margin: 0 auto;
+  animation: contentFadeIn 0.12s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes contentFadeIn {
+  from {
+    opacity: 0.85;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Page Header Block */

@@ -38,7 +38,15 @@ export async function renderAdminQuoteRequests() {
               </tr>
             </thead>
             <tbody>
-              ${quotes.map(q => `
+              ${quotes.length === 0 ? `
+                <tr>
+                  <td colspan="8" style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">💬</div>
+                    <div style="font-weight: 700; margin-bottom: 0.25rem; color: #f8fafc;">No quote requests pending</div>
+                    <div style="font-size: 0.8125rem;">Custom inquiries and quote submissions from clients will appear here.</div>
+                  </td>
+                </tr>
+              ` : quotes.map(q => `
                 <tr>
                   <td style="font-family: monospace; font-weight: 700; padding-left: 1.75rem;">${q.id}</td>
                   <td style="font-weight: 600;">${q.clientName}<br><span style="font-size: 0.75rem; color: var(--text-muted);">${q.mobile}</span></td>

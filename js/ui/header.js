@@ -44,12 +44,12 @@ export function renderHeader(title = 'Dashboard', breadcrumbs = []) {
             <span class="notif-badge js-notif-badge" style="display: none; position: absolute; top: -4px; right: -4px; background: #e11d48; color: #fff; font-size: 0.6875rem; font-weight: 700; min-width: 18px; height: 18px; border-radius: 9px; line-height: 18px; text-align: center; padding: 0 4px;">0</span>
           </button>
 
-          <div class="notif-dropdown js-notif-dropdown" style="display: none; position: absolute; right: 0; top: calc(100% + 8px); width: 360px; max-width: 90vw; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); z-index: 1000; overflow: hidden;">
-            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-color); background: var(--bg-surface-alt, #f8fafc);">
-              <h4 style="margin: 0; font-size: 0.9375rem; font-weight: 600;">Notifications</h4>
-              <button class="btn-link js-mark-all-read-btn" style="font-size: 0.75rem; color: var(--primary-main); background: none; border: none; cursor: pointer; text-decoration: underline;">Mark all as read</button>
+          <div class="notif-dropdown js-notif-dropdown" style="display: none;">
+            <div class="notif-dropdown-header">
+              <h4 class="notif-dropdown-title">Notifications</h4>
+              <button class="btn-link js-mark-all-read-btn" style="font-size: 0.75rem; color: var(--accent-gold, #d4af37); background: none; border: none; cursor: pointer; text-decoration: underline;">Mark all as read</button>
             </div>
-            <div class="notif-list js-notif-list" style="max-height: 320px; overflow-y: auto;">
+            <div class="notif-list js-notif-list">
               <div style="padding: 2rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.875rem;">Loading notifications...</div>
             </div>
           </div>

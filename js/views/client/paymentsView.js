@@ -8,9 +8,9 @@ import { renderStatusBadge, icons } from '../../ui/components.js';
 
 export async function renderClientPayments() {
   const user = authService.getCurrentUser();
-  const clientId = user ? user.clientId : 'CL001';
+  const clientId = user ? (user.clientId || user.userId) : null;
 
-  const data = await paymentService.getPaymentsByClientId(clientId);
+  const data = clientId ? await paymentService.getPaymentsByClientId(clientId) : { payments: [], summary: { totalInvoiced: 0, totalPaid: 0, totalDue: 0 } };
   const { payments, summary } = data;
 
   return `
@@ -73,7 +73,15 @@ export async function renderClientPayments() {
               </tr>
             </thead>
             <tbody>
-              ${payments.map(p => `
+              ${payments.length === 0 ? `
+                <tr>
+                  <td colspan="7" style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">💳</div>
+                    <div style="font-weight: 700; margin-bottom: 0.25rem; color: #f8fafc;">No payment transactions recorded</div>
+                    <div style="font-size: 0.8125rem;">Invoices, milestone payments, and receipts will appear here as services progress.</div>
+                  </td>
+                </tr>
+              ` : payments.map(p => `
                 <tr>
                   <td>${p.date}</td>
                   <td style="font-weight: 600;">${p.serviceCode}</td>

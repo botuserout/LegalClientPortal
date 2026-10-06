@@ -85,7 +85,15 @@ export async function renderAdminCrmSync() {
               </tr>
             </thead>
             <tbody>
-              ${syncObj.records.map(rec => `
+              ${syncObj.records.length === 0 ? `
+                <tr>
+                  <td colspan="7" style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔄</div>
+                    <div style="font-weight: 700; margin-bottom: 0.25rem; color: #f8fafc;">No CRM sync logs recorded</div>
+                    <div style="font-size: 0.8125rem;">Live Zoho CRM lead and pipeline synchronization records will populate here.</div>
+                  </td>
+                </tr>
+              ` : syncObj.records.map(rec => `
                 <tr>
                   <td style="font-weight: 600;">${rec.recordName}</td>
                   <td style="font-family: monospace; font-size: 0.8125rem;">${rec.crmId}</td>

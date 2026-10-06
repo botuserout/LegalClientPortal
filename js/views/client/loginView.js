@@ -38,7 +38,7 @@ export function renderClientLogin() {
 
       <!-- Right Side Login Card Form -->
       <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem; background-color: #0b1325;">
-        <div style="width: 100%; max-width: 440px; background-color: #0f172a; padding: 2.5rem; border-radius: 20px; border: 1px solid rgba(212, 175, 55, 0.25); box-shadow: 0 20px 48px -12px rgba(0, 0, 0, 0.85), 0 0 25px rgba(212, 175, 55, 0.1);">
+        <div class="login-card-container" style="width: 100%; max-width: 440px; background-color: #0f172a; padding: 2.5rem; border-radius: 20px; border: 1px solid rgba(212, 175, 55, 0.25); box-shadow: 0 20px 48px -12px rgba(0, 0, 0, 0.85), 0 0 25px rgba(212, 175, 55, 0.1);">
           <div style="margin-bottom: 2rem;">
             <h2 style="font-family: var(--font-heading); font-size: 1.85rem; font-weight: 700; color: #ffffff;">Welcome back</h2>
             <p style="color: #94a3b8; font-size: 0.9375rem; margin-top: 0.35rem;">Access your Legal Sthal client portal account</p>
@@ -56,7 +56,7 @@ export function renderClientLogin() {
           <form id="client-login-form">
             <div class="form-group">
               <label class="form-label" for="login-email">Email or Client ID</label>
-              <input type="text" id="login-email" class="form-control" placeholder="client@example.com or CL001" required autocomplete="username" />
+              <input type="text" id="login-email" class="form-control" placeholder="client@example.com or Client ID" required autocomplete="username" />
             </div>
 
             <div class="form-group">
@@ -114,6 +114,8 @@ export function bindClientLoginEvents(routerNavigate) {
     });
   }
 
+  const expiredAlert = document.getElementById('session-expired-alert');
+
   function showError(msg) {
     if (errorAlert) {
       errorAlert.textContent = msg;
@@ -125,6 +127,9 @@ export function bindClientLoginEvents(routerNavigate) {
     if (errorAlert) {
       errorAlert.textContent = '';
       errorAlert.style.display = 'none';
+    }
+    if (expiredAlert) {
+      expiredAlert.style.display = 'none';
     }
   }
 

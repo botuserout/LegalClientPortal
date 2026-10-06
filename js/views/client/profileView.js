@@ -10,17 +10,17 @@ import { icons } from '../../ui/components.js';
 
 export async function renderClientProfile() {
   const user = authService.getCurrentUser();
-  const clientId = user ? user.clientId : 'CL001';
+  const clientId = user ? (user.clientId || user.userId) : null;
 
-  const client = await clientService.getClientById(clientId) || {
-    id: 'CL001',
-    companyName: 'ABC Technologies Pvt Ltd',
-    contactPerson: 'Rahul Mehta',
-    email: 'abc@gmail.com',
-    mobile: '+91 98765 43210',
-    state: 'Gujarat',
-    address: '102 Tech Park, SG Highway, Ahmedabad, Gujarat - 380054',
-    gstin: '24AAACA123411Z5'
+  const client = (clientId ? await clientService.getClientById(clientId) : null) || {
+    id: clientId || 'Pending',
+    companyName: user?.companyName || user?.name || 'Company Profile Pending',
+    contactPerson: user?.contactPerson || user?.name || 'Authorized Signatory',
+    email: user?.email || '',
+    mobile: user?.mobile || 'Not provided',
+    state: user?.state || 'N/A',
+    address: user?.address || 'Not specified',
+    gstin: user?.gstin || 'Not registered'
   };
 
   return `
@@ -114,15 +114,15 @@ export function bindClientProfileEvents() {
         bodyHtml: `
           <form id="change-pwd-form">
             <div class="form-group">
-              <label class="form-label">Current Password</label>
-              <input type="password" class="form-control" required placeholder="Enter current password" />
+              <label class="form-label">Current Password *</label>
+              <input type="password" class="form-control" id="cur-pwd" required placeholder="Enter current password" />
             </div>
             <div class="form-group">
-              <label class="form-label">New Password</label>
-              <input type="password" class="form-control" id="new-pwd-1" required placeholder="At least 8 characters" />
+              <label class="form-label">New Password *</label>
+              <input type="password" class="form-control" id="new-pwd-1" required placeholder="At least 8 characters (Upper, Lower, Number, Special)" />
             </div>
             <div class="form-group">
-              <label class="form-label">Confirm New Password</label>
+              <label class="form-label">Confirm New Password *</label>
               <input type="password" class="form-control" id="new-pwd-2" required placeholder="Re-enter new password" />
             </div>
           </form>
@@ -133,19 +133,38 @@ export function bindClientProfileEvents() {
         `,
         onOpen: () => {
           document.querySelector('.js-modal-cancel').onclick = () => modal.close();
-          document.getElementById('save-pwd-btn').onclick = () => {
+          document.getElementById('save-pwd-btn').onclick = async () => {
+            const cur = document.getElementById('cur-pwd').value;
             const p1 = document.getElementById('new-pwd-1').value;
             const p2 = document.getElementById('new-pwd-2').value;
-            if (!p1 || p1.length < 6) {
-              toast.error('Weak Password', 'Password must be at least 6 characters.');
+            const btn = document.getElementById('save-pwd-btn');
+
+            if (!cur) {
+              toast.error('Required', 'Please enter your current password.');
+              return;
+            }
+            if (!p1 || p1.length < 8) {
+              toast.error('Weak Password', 'Password must be at least 8 characters.');
               return;
             }
             if (p1 !== p2) {
               toast.error('Mismatch', 'New passwords do not match.');
               return;
             }
-            toast.success('Password Updated', 'Your account password has been changed successfully.');
-            modal.close();
+
+            btn.disabled = true;
+            btn.textContent = 'Updating...';
+
+            const res = await authService.changePassword(cur, p1, p2);
+            btn.disabled = false;
+            btn.innerHTML = `${icons.check} Update Password`;
+
+            if (res.success) {
+              toast.success('Password Updated', res.message || 'Your account password has been changed successfully.');
+              modal.close();
+            } else {
+              toast.error('Failed to Change Password', res.error?.message || 'Please check your inputs.');
+            }
           };
         }
       });

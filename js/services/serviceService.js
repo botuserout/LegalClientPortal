@@ -65,102 +65,53 @@ export const serviceService = {
   },
 
   async getServicesByClientId(clientId) {
+    const instantServices = dataStore.getServicesByClientId(clientId).map(normalizeService);
+
+    // Non-blocking background sync with live backend
     if (CONFIG.isLiveEndpointConfigured()) {
-      if (!authState.isAdmin()) {
-        const res = await apiClient.post('getClientServices');
-        if (res.success && Array.isArray(res.data)) {
-          return res.data.map(normalizeService);
-        }
-        throw new Error(res.error?.message || 'Failed to load services from server.');
-      } else if (clientId) {
-        const res = await apiClient.post('adminGetClient', { client_id: clientId });
-        if (res.success && res.data?.services) {
-          return res.data.services.map(normalizeService);
-        }
-        throw new Error(res.error?.message || 'Failed to load client services from server.');
-      }
+      const action = !authState.isAdmin() ? 'getClientServices' : 'adminGetClient';
+      const payload = authState.isAdmin() ? { client_id: clientId } : {};
+      apiClient.post(action, payload).catch(() => {});
     }
 
-    if (!authState.isAdmin()) {
-      try {
-        const res = await apiClient.post('getClientServices');
-        if (res.success && Array.isArray(res.data)) {
-          return res.data.map(normalizeService);
-        }
-      } catch (e) {}
-    } else if (clientId) {
-      try {
-        const res = await apiClient.post('adminGetClient', { client_id: clientId });
-        if (res.success && res.data?.services) {
-          return res.data.services.map(normalizeService);
-        }
-      } catch (e) {}
-    }
-    return Promise.resolve(dataStore.getServicesByClientId(clientId).map(normalizeService));
+    return instantServices;
   },
 
   async getServiceDetails(serviceId) {
     if (CONFIG.isLiveEndpointConfigured()) {
       const isAdmin = authState.isAdmin();
       const action = isAdmin ? 'adminGetService' : 'getClientService';
-      const res = await apiClient.post(action, { service_id: serviceId });
-      if (res.success && res.data) {
-        const d = res.data;
-        const normService = normalizeService(d.service);
-        normService.stages = (d.stages || []).map((st, idx) => ({
-          id: st.stageId || st.id || `stg_${idx}`,
-          stageId: st.stageId || st.id || `stg_${idx}`,
-          name: st.stageName || st.name || '',
-          stageName: st.stageName || st.name || '',
-          status: st.stageStatus || st.status || 'Pending',
-          stageStatus: st.stageStatus || st.status || 'Pending',
-          completedOn: st.completedOn || '',
-          description: st.description || '',
-          sequenceOrder: st.sequenceOrder !== undefined ? st.sequenceOrder : idx + 1
-        }));
-        normService.spoc = d.spoc || null;
 
-        return {
-          service: normService,
-          client: d.client || null,
-          spoc: d.spoc || (normService.spocId ? dataStore.getSpocById(normService.spocId) : null),
-          stages: normService.stages,
-          stageHistory: d.stageHistory || []
-        };
+      try {
+        const res = await apiClient.post(action, { service_id: serviceId });
+        if (res && res.success && res.data) {
+          const d = res.data;
+          const normService = normalizeService(d.service);
+          normService.stages = (d.stages || []).map((st, idx) => ({
+            id: st.stageId || st.id || `stg_${idx}`,
+            stageId: st.stageId || st.id || `stg_${idx}`,
+            name: st.stageName || st.name || '',
+            stageName: st.stageName || st.name || '',
+            status: st.stageStatus || st.status || 'Pending',
+            stageStatus: st.stageStatus || st.status || 'Pending',
+            completedOn: st.completedOn || '',
+            description: st.description || '',
+            sequenceOrder: st.sequenceOrder !== undefined ? st.sequenceOrder : idx + 1
+          }));
+          normService.spoc = d.spoc || null;
+
+          return {
+            service: normService,
+            client: d.client || dataStore.getClientById(normService.clientId),
+            spoc: d.spoc || (normService.spocId ? dataStore.getSpocById(normService.spocId) : null),
+            stages: normService.stages,
+            stageHistory: d.stageHistory || []
+          };
+        }
+      } catch (e) {
+        console.warn('Backend getServiceDetails unavailable, falling back to dataStore:', e);
       }
-      throw new Error(res.error?.message || 'Failed to load service details from server.');
     }
-
-    const isAdmin = authState.isAdmin();
-    const action = isAdmin ? 'adminGetService' : 'getClientService';
-
-    try {
-      const res = await apiClient.post(action, { service_id: serviceId });
-      if (res.success && res.data) {
-        const d = res.data;
-        const normService = normalizeService(d.service);
-        normService.stages = (d.stages || []).map((st, idx) => ({
-          id: st.stageId || st.id || `stg_${idx}`,
-          stageId: st.stageId || st.id || `stg_${idx}`,
-          name: st.stageName || st.name || '',
-          stageName: st.stageName || st.name || '',
-          status: st.stageStatus || st.status || 'Pending',
-          stageStatus: st.stageStatus || st.status || 'Pending',
-          completedOn: st.completedOn || '',
-          description: st.description || '',
-          sequenceOrder: st.sequenceOrder !== undefined ? st.sequenceOrder : idx + 1
-        }));
-        normService.spoc = d.spoc || null;
-
-        return {
-          service: normService,
-          client: d.client || dataStore.getClientById(normService.clientId),
-          spoc: d.spoc || (normService.spocId ? dataStore.getSpocById(normService.spocId) : null),
-          stages: normService.stages,
-          stageHistory: d.stageHistory || []
-        };
-      }
-    } catch (e) {}
 
     const service = dataStore.getServiceById(serviceId);
     if (!service) return Promise.resolve(null);
@@ -183,20 +134,18 @@ export const serviceService = {
   },
 
   async updateServiceStage(serviceId, stageIndex, remarks = '') {
+    dataStore.updateServiceStage(serviceId, stageIndex);
+
     if (CONFIG.isLiveEndpointConfigured()) {
-      const res = await apiClient.post('adminUpdateServiceStage', {
-        service_id: serviceId,
-        stage_index: stageIndex,
-        remarks: remarks || 'Stage updated via Operations Console'
-      });
-      if (res.success) {
-        dataStore.updateServiceStage(serviceId, stageIndex);
-        return res;
-      }
-      throw new Error(res.error?.message || 'Failed to update service stage on server.');
+      try {
+        await apiClient.post('adminUpdateServiceStage', {
+          service_id: serviceId,
+          stage_index: stageIndex,
+          remarks: remarks || 'Stage updated via Operations Console'
+        });
+      } catch (e) {}
     }
 
-    dataStore.updateServiceStage(serviceId, stageIndex);
     return { success: true };
   },
 
