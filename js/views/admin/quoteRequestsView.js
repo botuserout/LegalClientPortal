@@ -117,7 +117,9 @@ export function bindAdminQuoteRequestsEvents() {
             await quoteService.updateQuoteStatus(quoteId, 'Quote Sent', price, remarks);
             toast.success('Quote Dispatched', `Proposal of ${price} sent to client for ${serviceName}.`);
             modal.close();
-            window.location.reload();
+            if (window.appInstance) {
+              window.appInstance.handleRoute();
+            }
           };
         }
       });
@@ -130,7 +132,9 @@ export function bindAdminQuoteRequestsEvents() {
 
       quoteService.updateQuoteStatus(quoteId, status).then(() => {
         toast.success('Quote Status Updated', `Quote status changed to ${status}.`);
-        window.location.reload();
+        if (window.appInstance) {
+          window.appInstance.handleRoute();
+        }
       });
     }
   });

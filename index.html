@@ -29,11 +29,12 @@
 </head>
 <body>
   <div id="app-root">
-    <!-- Rendered dynamically by js/app.js -->
-    <div class="empty-state" style="min-height: 100vh;">
-      <div class="skeleton" style="width: 200px; height: 30px; margin-bottom: 1rem;"></div>
-      <p style="color: var(--text-muted);">Loading Legal Sthal Application Platform...</p>
+    <!-- Initial splash rendered before js/app.js mounts in <50ms -->
+    <div style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; background: #0b1325;">
+      <div style="width: 40px; height: 40px; border-radius: 50%; border: 3px solid rgba(212, 175, 55, 0.2); border-top-color: #d4af37; animation: spin 0.8s linear infinite;"></div>
+      <div style="font-family: 'Playfair Display', Georgia, serif; font-size: 1.15rem; color: #f3e5ab; font-weight: 600; letter-spacing: 0.5px;">Legal Sthal</div>
     </div>
+    <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
   </div>
 
   <!-- Modular JavaScript Entry -->

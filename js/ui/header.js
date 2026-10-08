@@ -135,9 +135,10 @@ export function bindHeaderEvents() {
         });
 
         // Navigate to related view if appropriate
-        if (type === 'DOCUMENT') window.location.hash = '#client/documents';
-        else if (type === 'QUOTE_REQUEST') window.location.hash = '#client/quote-requests';
-        else if (type === 'SERVICE') window.location.hash = '#client/services';
+        const isAdmin = authService.isAdmin();
+        if (type === 'DOCUMENT') window.location.hash = isAdmin ? '#admin/documents' : '#client/documents';
+        else if (type === 'QUOTE_REQUEST') window.location.hash = isAdmin ? '#admin/quote-requests' : '#client/quote-requests';
+        else if (type === 'SERVICE') window.location.hash = isAdmin ? '#admin/services' : '#client/services';
         dropdown.style.display = 'none';
       }
     });

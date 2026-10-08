@@ -267,7 +267,9 @@ export function bindClientServiceDetailEvents() {
             await documentService.submitDocument(serviceId, docName);
             toast.success('Document Submitted', `Your '${docName}' has been submitted and is now Under Review.`);
             modal.close();
-            window.location.reload();
+            if (window.appInstance) {
+              window.appInstance.handleRoute();
+            }
           };
         }
       });

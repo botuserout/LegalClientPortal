@@ -142,9 +142,28 @@ button {
   background: none;
 }
 
-input, select, textarea {
+input, select, textarea, .form-control {
   font-family: inherit;
   font-size: 0.9375rem;
+  background-color: #131b2e !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(212, 175, 55, 0.28) !important;
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  transition: all var(--transition-fast);
+}
+
+input:focus, select:focus, textarea:focus, .form-control:focus {
+  outline: none !important;
+  background-color: #0b1325 !important;
+  border-color: #d4af37 !important;
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.25), 0 0 15px rgba(212, 175, 55, 0.15) !important;
+  color: #ffffff !important;
+}
+
+select option {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
 }
 
 /* Layout Shell */

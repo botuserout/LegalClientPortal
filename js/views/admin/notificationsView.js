@@ -133,7 +133,9 @@ export function bindAdminNotificationEvents() {
         'All operational logs marked as read.'
       );
 
-      window.location.reload();
+      if (window.appInstance) {
+        window.appInstance.handleRoute();
+      }
 
     } catch (error) {
       console.error('Failed to mark notifications as read:', error);

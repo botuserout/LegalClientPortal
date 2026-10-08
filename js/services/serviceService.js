@@ -61,19 +61,32 @@ function normalizeService(s) {
 
 export const serviceService = {
   async getServices() {
+    if (CONFIG.isLiveEndpointConfigured()) {
+      try {
+        const res = await apiClient.post('adminGetServices');
+        if (res && res.success && Array.isArray(res.data)) {
+          return res.data.map(normalizeService);
+        }
+      } catch (err) {
+        console.warn('Live adminGetServices error:', err);
+      }
+    }
     return Promise.resolve(dataStore.getServices().map(normalizeService));
   },
 
   async getServicesByClientId(clientId) {
-    const instantServices = dataStore.getServicesByClientId(clientId).map(normalizeService);
-
-    // Non-blocking background sync with live backend
     if (CONFIG.isLiveEndpointConfigured()) {
-      const action = !authState.isAdmin() ? 'getClientServices' : 'adminGetClient';
-      const payload = authState.isAdmin() ? { client_id: clientId } : {};
-      apiClient.post(action, payload).catch(() => {});
+      try {
+        const res = await apiClient.post('getClientServices', { client_id: clientId, clientId: clientId });
+        if (res && res.success && Array.isArray(res.data)) {
+          return res.data.map(normalizeService);
+        }
+      } catch (err) {
+        console.warn('Live getClientServices error:', err);
+      }
     }
 
+    const instantServices = dataStore.getServicesByClientId(clientId).map(normalizeService);
     return instantServices;
   },
 
@@ -87,17 +100,21 @@ export const serviceService = {
         if (res && res.success && res.data) {
           const d = res.data;
           const normService = normalizeService(d.service);
-          normService.stages = (d.stages || []).map((st, idx) => ({
-            id: st.stageId || st.id || `stg_${idx}`,
-            stageId: st.stageId || st.id || `stg_${idx}`,
-            name: st.stageName || st.name || '',
-            stageName: st.stageName || st.name || '',
-            status: st.stageStatus || st.status || 'Pending',
-            stageStatus: st.stageStatus || st.status || 'Pending',
-            completedOn: st.completedOn || '',
-            description: st.description || '',
-            sequenceOrder: st.sequenceOrder !== undefined ? st.sequenceOrder : idx + 1
-          }));
+          const rawStages = (d.stages && d.stages.length) ? d.stages : (d.service?.stages || []);
+          normService.stages = rawStages.map((st, idx) => {
+            const stName = st.stageName || st.name || st.stage_name || `Stage ${idx + 1}`;
+            return {
+              id: st.stageId || st.id || st.stage_id || `stg_${idx}`,
+              stageId: st.stageId || st.id || st.stage_id || `stg_${idx}`,
+              name: stName,
+              stageName: stName,
+              status: st.stageStatus || st.status || st.stage_status || 'Pending',
+              stageStatus: st.stageStatus || st.status || st.stage_status || 'Pending',
+              completedOn: st.completedOn || st.completed_on || '',
+              description: st.description || '',
+              sequenceOrder: st.sequenceOrder !== undefined ? st.sequenceOrder : (st.sequence_order !== undefined ? st.sequence_order : idx + 1)
+            };
+          });
           normService.spoc = d.spoc || null;
 
           return {
@@ -128,7 +145,22 @@ export const serviceService = {
     });
   },
 
-  addServiceToClient(clientId, serviceData) {
+  async addServiceToClient(clientId, serviceData) {
+    if (CONFIG.isLiveEndpointConfigured()) {
+      try {
+        const res = await apiClient.post('addServiceToClient', {
+          client_id: clientId,
+          clientId: clientId,
+          serviceData: serviceData
+        });
+        if (res && res.success) {
+          dataStore.addServiceToClient(clientId, serviceData);
+          return res.service || res.data;
+        }
+      } catch (err) {
+        console.warn('Live addServiceToClient error:', err);
+      }
+    }
     const result = dataStore.addServiceToClient(clientId, serviceData);
     return Promise.resolve(result);
   },
@@ -137,13 +169,14 @@ export const serviceService = {
     dataStore.updateServiceStage(serviceId, stageIndex);
 
     if (CONFIG.isLiveEndpointConfigured()) {
-      try {
-        await apiClient.post('adminUpdateServiceStage', {
-          service_id: serviceId,
-          stage_index: stageIndex,
-          remarks: remarks || 'Stage updated via Operations Console'
-        });
-      } catch (e) {}
+      const res = await apiClient.post('adminUpdateServiceStage', {
+        service_id: serviceId,
+        stage_index: stageIndex,
+        remarks: remarks || 'Stage updated via Operations Console'
+      });
+      if (!res || !res.success) {
+        throw new Error(res?.error?.message || 'Failed to update service stage on server.');
+      }
     }
 
     return { success: true };

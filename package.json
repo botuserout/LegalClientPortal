@@ -1,0 +1,13 @@
+{
+  "name": "legal-sthal-client-portal",
+  "version": "2.0.0",
+  "description": "Legal Sthal Client & Operations Management Portal",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "build": "echo 'Build complete'"
+  },
+  "dependencies": {
+    "nodemailer": "^6.9.16"
+  }
+}

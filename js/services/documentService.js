@@ -78,12 +78,13 @@ export const documentService = {
     dataStore.verifyDocument(serviceId, docId);
 
     if (CONFIG.isLiveEndpointConfigured()) {
-      try {
-        await apiClient.post('adminVerifyDocument', {
-          document_id: docId,
-          remarks: remarks || 'Verified by operations specialist'
-        });
-      } catch (e) {}
+      const res = await apiClient.post('adminVerifyDocument', {
+        document_id: docId,
+        remarks: remarks || 'Verified by operations specialist'
+      });
+      if (!res || !res.success) {
+        throw new Error(res?.error?.message || 'Failed to verify document on server.');
+      }
     }
 
     return { success: true, message: 'Verified successfully.' };
@@ -96,12 +97,13 @@ export const documentService = {
     dataStore.rejectDocument(serviceId, docId, reason);
 
     if (CONFIG.isLiveEndpointConfigured()) {
-      try {
-        await apiClient.post('adminRejectDocument', {
-          document_id: docId,
-          reason: reason || 'Document image is not legible. Please resubmit a clean copy.'
-        });
-      } catch (e) {}
+      const res = await apiClient.post('adminRejectDocument', {
+        document_id: docId,
+        reason: reason || 'Document image is not legible. Please resubmit a clean copy.'
+      });
+      if (!res || !res.success) {
+        throw new Error(res?.error?.message || 'Failed to reject document on server.');
+      }
     }
 
     return { success: true, message: 'Rejected successfully.' };
@@ -114,16 +116,17 @@ export const documentService = {
     dataStore.submitDocument(serviceId, docName);
 
     if (CONFIG.isLiveEndpointConfigured()) {
-      try {
-        await apiClient.post('uploadDocument', {
-          service_id: serviceId,
-          document_name: docName,
-          document_type: docType,
-          file_base64: fileBase64,
-          mime_type: mimeType,
-          file_name: fileName
-        });
-      } catch (e) {}
+      const res = await apiClient.post('uploadDocument', {
+        service_id: serviceId,
+        document_name: docName,
+        document_type: docType,
+        file_base64: fileBase64,
+        mime_type: mimeType,
+        file_name: fileName
+      });
+      if (!res || !res.success) {
+        throw new Error(res?.error?.message || 'Failed to upload document on server.');
+      }
     }
 
     return { success: true, message: 'Submitted successfully.' };

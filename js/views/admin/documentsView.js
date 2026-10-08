@@ -115,7 +115,9 @@ export function bindAdminDocumentsEvents() {
 
       documentService.verifyDocument(serviceId, docId).then(() => {
         toast.success('Document Verified', `'${docName}' status updated to Verified.`);
-        window.location.reload();
+        if (window.appInstance) {
+          window.appInstance.handleRoute();
+        }
       });
     }
 
@@ -160,7 +162,9 @@ export function bindAdminDocumentsEvents() {
             await documentService.rejectDocument(serviceId, docId, reason);
             toast.warning('Document Rejected', `'${docName}' rejected. Client notified to resubmit.`);
             modal.close();
-            window.location.reload();
+            if (window.appInstance) {
+              window.appInstance.handleRoute();
+            }
           };
         }
       });

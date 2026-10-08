@@ -16,6 +16,42 @@ export const adminService = {
    * Retrieves administrative overview dashboard metrics and recent activity.
    */
   async getDashboard() {
+    if (CONFIG.isLiveEndpointConfigured()) {
+      try {
+        const res = await apiClient.post('adminGetDashboard');
+        if (res && res.success && res.data) {
+          const d = res.data;
+          return {
+            metrics: {
+              totalClients: d.totalClients || 0,
+              activeClients: d.totalClients || 0,
+              totalServices: (d.activeServices || 0) + (d.completedServices || 0),
+              activeServices: d.activeServices || 0,
+              completedServices: d.completedServices || 0,
+              pendingDocsCount: d.pendingDocs || 0,
+              rejectedDocsCount: d.rejectedDocs || 0,
+              pendingQuotesCount: d.totalQuotes || 0,
+              totalPending: d.totalPending || 0
+            },
+            recentClients: (d.recentClients || []).map(c => ({
+              id: c.clientId || c.id,
+              clientId: c.clientId || c.id,
+              companyName: c.companyName || c.name,
+              name: c.companyName || c.name,
+              contactPerson: c.contactPerson || c.contactName,
+              email: c.email,
+              mobile: c.mobile,
+              state: c.state,
+              status: c.status
+            })),
+            recentServices: d.recentServices || []
+          };
+        }
+      } catch (err) {
+        console.warn('Live adminGetDashboard error, falling back:', err);
+      }
+    }
+
     const clients = dataStore.getClients();
     const services = dataStore.getServices();
     const activeClients = clients.filter(c => c.status === 'Active').length;
@@ -44,10 +80,6 @@ export const adminService = {
       recentServices: services.slice(-5).reverse()
     };
 
-    if (CONFIG.isLiveEndpointConfigured()) {
-      apiClient.post('adminGetDashboard').catch(() => {});
-    }
-
     return instantMetrics;
   },
 
@@ -55,6 +87,33 @@ export const adminService = {
    * Retrieves clients for the admin directory with search and filter.
    */
   async getClients(searchQuery = '', statusFilter = '') {
+    if (CONFIG.isLiveEndpointConfigured()) {
+      try {
+        const res = await apiClient.post('adminGetClients', {
+          search: searchQuery,
+          status: statusFilter
+        });
+        if (res && res.success && Array.isArray(res.data)) {
+          let list = res.data;
+          if (statusFilter && statusFilter !== 'ALL') {
+            list = list.filter(c => (c.status || '').toLowerCase() === statusFilter.toLowerCase());
+          }
+          if (searchQuery) {
+            const q = searchQuery.toLowerCase();
+            list = list.filter(c =>
+              (c.id && c.id.toLowerCase().includes(q)) ||
+              (c.companyName && c.companyName.toLowerCase().includes(q)) ||
+              (c.contactPerson && c.contactPerson.toLowerCase().includes(q)) ||
+              (c.email && c.email.toLowerCase().includes(q))
+            );
+          }
+          return list;
+        }
+      } catch (err) {
+        console.warn('Live adminGetClients error, falling back:', err);
+      }
+    }
+
     let clients = dataStore.getClients();
     if (statusFilter && statusFilter !== 'ALL') {
       clients = clients.filter(c => c.status.toLowerCase() === statusFilter.toLowerCase());
@@ -67,13 +126,6 @@ export const adminService = {
         (c.contactPerson && c.contactPerson.toLowerCase().includes(q)) ||
         (c.email && c.email.toLowerCase().includes(q))
       );
-    }
-
-    if (CONFIG.isLiveEndpointConfigured()) {
-      apiClient.post('adminGetClients', {
-        search: searchQuery,
-        status: statusFilter
-      }).catch(() => {});
     }
 
     return clients;
@@ -134,13 +186,14 @@ export const adminService = {
     dataStore.updateServiceStage(serviceId, stageIndex);
 
     if (CONFIG.isLiveEndpointConfigured()) {
-      try {
-        await apiClient.post('adminUpdateServiceStage', {
-          service_id: serviceId,
-          stage_index: stageIndex,
-          remarks: remarks || 'Stage updated via Operations Console'
-        });
-      } catch (e) {}
+      const res = await apiClient.post('adminUpdateServiceStage', {
+        service_id: serviceId,
+        stage_index: stageIndex,
+        remarks: remarks || 'Stage updated via Operations Console'
+      });
+      if (!res || !res.success) {
+        throw new Error(res?.error?.message || 'Failed to update service stage on server.');
+      }
     }
 
     return { success: true, message: 'Updated successfully.' };
@@ -153,12 +206,13 @@ export const adminService = {
     dataStore.assignSpoc(serviceId, spocId);
 
     if (CONFIG.isLiveEndpointConfigured()) {
-      try {
-        await apiClient.post('adminAssignSpoc', {
-          service_id: serviceId,
-          spoc_id: spocId
-        });
-      } catch (e) {}
+      const res = await apiClient.post('adminAssignSpoc', {
+        service_id: serviceId,
+        spoc_id: spocId
+      });
+      if (!res || !res.success) {
+        throw new Error(res?.error?.message || 'Failed to assign SPOC on server.');
+      }
     }
 
     return { success: true, message: 'Assigned successfully.' };

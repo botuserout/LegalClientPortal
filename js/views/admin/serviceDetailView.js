@@ -53,12 +53,18 @@ export async function renderAdminServiceDetail(serviceId) {
         <div style="display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
           <div style="flex: 1; min-width: 260px;">
             <label class="form-label">Select Target Operational Stage</label>
-            <select class="form-control" id="admin-stage-selector" style="font-weight: 600;">
-              ${service.stages.map((st, idx) => `
+            <select class="form-control" id="admin-stage-selector" style="font-weight: 600; font-size: 0.95rem; padding: 0.65rem 0.85rem; border: 1.5px solid var(--primary-500); background-color: var(--bg-surface);">
+              ${service.stages.map((st, idx) => {
+                const stageName = st.name || st.stageName || st.stage_name || `Stage ${idx + 1}`;
+                let tag = 'Pending';
+                if (idx < service.currentStageIndex) tag = '✓ Completed';
+                else if (idx === service.currentStageIndex) tag = '● Current Active';
+                return `
                 <option value="${idx}" ${idx === service.currentStageIndex ? 'selected' : ''}>
-                  ${idx + 1}. ${st.name} ${idx < service.currentStageIndex ? '(Completed)' : idx === service.currentStageIndex ? '(Current Active)' : '(Pending)'}
+                  Stage ${idx + 1}: ${stageName} — [${tag}]
                 </option>
-              `).join('')}
+              `;
+              }).join('')}
             </select>
           </div>
 
@@ -121,26 +127,33 @@ export function bindAdminServiceDetailEvents() {
 
       serviceService.getServiceDetails(serviceId).then(data => {
         const service = data.service;
-        const currentStageName = service.stages[service.currentStageIndex].name;
-        const targetStageName = service.stages[targetIndex].name;
+        const currentStageName = service.stages?.[service.currentStageIndex]?.name || service.stages?.[service.currentStageIndex]?.stageName || service.currentStage || 'Current Stage';
+        const targetStageName = service.stages?.[targetIndex]?.name || service.stages?.[targetIndex]?.stageName || `Stage ${targetIndex + 1}`;
 
         if (targetIndex === service.currentStageIndex) {
-          toast.info('No Change', `Service is already at stage '${targetStageName}'`);
+          toast.info('No Change', `Service is already at Stage ${targetIndex + 1}: '${targetStageName}'`);
           return;
         }
 
         modal.open({
           title: 'Confirm Operational Stage Update',
           bodyHtml: `
-            <div style="text-align: center; padding: 1rem 0;">
-              <p style="font-size: 1.05rem; color: var(--text-main); line-height: 1.5;">
-                Move service stage from<br>
-                <strong style="color: var(--text-muted); font-size: 1.15rem;">${currentStageName}</strong><br>
-                to<br>
-                <strong style="color: var(--primary-500); font-size: 1.25rem;">${targetStageName}</strong>?
+            <div style="text-align: center; padding: 1.25rem 0.5rem;">
+              <p style="font-size: 1rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                Are you sure you want to transition service <strong>${service.serviceCode}</strong>?
               </p>
-              <div class="form-hint" style="margin-top: 1rem;">
-                This action will instantly update the client portal timeline and dispatch automated status notifications.
+              <div style="background: var(--bg-surface); border: 1px solid var(--divider); border-radius: 8px; padding: 1rem; margin: 1rem auto; max-width: 440px; text-align: left;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px dashed var(--divider);">
+                  <span style="font-size: 0.8125rem; color: var(--text-muted); font-weight: 600;">Current Stage:</span>
+                  <span style="font-size: 0.9375rem; color: var(--text-main); font-weight: 700;">Stage ${service.currentStageIndex + 1}: ${currentStageName}</span>
+                </div>
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <span style="font-size: 0.8125rem; color: var(--primary-500); font-weight: 700;">Target Stage:</span>
+                  <span style="font-size: 1.05rem; color: var(--primary-500); font-weight: 800;">Stage ${targetIndex + 1}: ${targetStageName}</span>
+                </div>
+              </div>
+              <div class="form-hint" style="margin-top: 1rem; font-size: 0.8125rem; color: var(--text-muted);">
+                ${icons.sync} This action will instantly update the client portal timeline and dispatch automated status notifications.
               </div>
             </div>
           `,
@@ -158,7 +171,9 @@ export function bindAdminServiceDetailEvents() {
               await serviceService.updateServiceStage(serviceId, targetIndex);
               toast.success('Stage Updated', `Service stage moved to '${targetStageName}' successfully.`);
               modal.close();
-              window.location.reload();
+              if (window.appInstance) {
+                window.appInstance.handleRoute();
+              }
             };
           }
         });
@@ -171,7 +186,9 @@ export function bindAdminServiceDetailEvents() {
       const spocId = document.getElementById('reassign-spoc-select').value;
       spocService.assignSpoc(serviceId, spocId).then(() => {
         toast.success('SPOC Reassigned', 'Service SPOC updated successfully.');
-        window.location.reload();
+        if (window.appInstance) {
+          window.appInstance.handleRoute();
+        }
       });
     }
   });

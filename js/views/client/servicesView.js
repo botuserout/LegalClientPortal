@@ -46,7 +46,8 @@ export async function renderClientServices() {
               </a>
             </div>
           ` : services.map(srv => {
-            const currentStageObj = srv.stages[srv.currentStageIndex] || srv.stages[0];
+            const currentStageObj = (srv.stages && srv.stages[srv.currentStageIndex]) || (srv.stages && srv.stages[0]) || null;
+            const stageName = currentStageObj?.name || currentStageObj?.stageName || srv.currentStage || 'Application Processing';
             const hasAction = srv.documents && srv.documents.some(d => d.status === 'Rejected');
 
             return `
@@ -63,7 +64,7 @@ export async function renderClientServices() {
                   <div class="service-stage-box">
                     <div>
                       <div class="stage-label">Current Stage</div>
-                      <div class="stage-name">${currentStageObj.name}</div>
+                      <div class="stage-name">${stageName}</div>
                     </div>
                   </div>
 

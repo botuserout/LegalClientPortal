@@ -9,6 +9,7 @@ import { authService } from '../../services/authService.js';
 import { modal } from '../../ui/modal.js';
 import { toast } from '../../ui/toast.js';
 import { icons } from '../../ui/components.js';
+import { renderStateOptionsHtml } from '../../config.js';
 
 let currentCategory = 'All';
 let searchQuery = '';
@@ -334,13 +335,7 @@ function triggerQuoteModal(serviceName) {
           <div class="form-group">
             <label class="form-label">State / Jurisdiction</label>
             <select class="form-control" id="qr-state">
-              <option value="Gujarat" selected>Gujarat</option>
-              <option value="Maharashtra">Maharashtra</option>
-              <option value="Karnataka">Karnataka</option>
-              <option value="Delhi">Delhi</option>
-              <option value="Telangana">Telangana</option>
-              <option value="Tamil Nadu">Tamil Nadu</option>
-              <option value="Haryana">Haryana</option>
+              ${renderStateOptionsHtml('Gujarat')}
               <option value="International (UK/US)">International (UK/US)</option>
             </select>
           </div>

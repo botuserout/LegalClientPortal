@@ -3,19 +3,14 @@ const ENDPOINT_STORAGE_KEY = 'legalsthal_apps_script_url';
 const GOOGLE_APPS_SCRIPT_URL =
   'https://script.google.com/macros/s/AKfycbxJ-MYnHlZAPQ8HjKzIjEl-YsxzXh8LtdN-V5fUEA8nT0EmXtun2BK4czmrTlVdShatzw/exec';
 
-const isLocalhost = typeof window !== 'undefined' && 
-  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+// /api/backend routes to local server on localhost, and to Netlify Serverless Function on Netlify
+const DEFAULT_API_ENDPOINT = '/api/backend';
 
-const DEFAULT_API_ENDPOINT = isLocalhost ? '/api/backend' : GOOGLE_APPS_SCRIPT_URL;
-
-// Update local storage to ensure the proper endpoint is active
+// Update local storage to ensure the unified /api/backend endpoint is active
 if (typeof localStorage !== 'undefined') {
   const currentStored = localStorage.getItem(ENDPOINT_STORAGE_KEY);
-  if (isLocalhost) {
-    // On localhost, always ensure the local proxy is used to avoid CORS/redirect/cookie issues
+  if (!currentStored || currentStored.includes('script.google.com')) {
     localStorage.setItem(ENDPOINT_STORAGE_KEY, '/api/backend');
-  } else if (!currentStored || currentStored.includes('/api/backend')) {
-    localStorage.setItem(ENDPOINT_STORAGE_KEY, GOOGLE_APPS_SCRIPT_URL);
   }
 }
 
@@ -29,7 +24,9 @@ export const CONFIG = {
 
   ENDPOINT_STORAGE_KEY: ENDPOINT_STORAGE_KEY,
 
-  REQUEST_TIMEOUT_MS: 60000,
+  SUPABASE_URL: 'https://pfsiblstvkcqjfiaajoe.supabase.co',
+  SUPABASE_KEY: 'sb_publishable_bXXPnBtfn4U-5iBvBDkaZQ_Df2_Dqxt',
+  REQUEST_TIMEOUT_MS: 30000,
 
   PASSWORD_POLICY: {
     MIN_LENGTH: 8,
@@ -81,3 +78,56 @@ export const CONFIG = {
   }
 
 };
+
+export const INDIAN_STATES_AND_UTS = [
+  // 28 States
+  'Andhra Pradesh',
+  'Arunachal Pradesh',
+  'Assam',
+  'Bihar',
+  'Chhattisgarh',
+  'Goa',
+  'Gujarat',
+  'Haryana',
+  'Himachal Pradesh',
+  'Jharkhand',
+  'Karnataka',
+  'Kerala',
+  'Madhya Pradesh',
+  'Maharashtra',
+  'Manipur',
+  'Meghalaya',
+  'Mizoram',
+  'Nagaland',
+  'Odisha',
+  'Punjab',
+  'Rajasthan',
+  'Sikkim',
+  'Tamil Nadu',
+  'Telangana',
+  'Tripura',
+  'Uttar Pradesh',
+  'Uttarakhand',
+  'West Bengal',
+  // 8 Union Territories
+  'Andaman and Nicobar Islands',
+  'Chandigarh',
+  'Dadra and Nagar Haveli and Daman and Diu',
+  'Delhi',
+  'Jammu and Kashmir',
+  'Ladakh',
+  'Lakshadweep',
+  'Puducherry'
+];
+
+export function renderStateOptionsHtml(selected = '', includeAll = false, allLabel = 'All States & UTs') {
+  let html = '';
+  if (includeAll) {
+    html += `<option value="ALL" ${selected === 'ALL' || !selected ? 'selected' : ''}>${allLabel}</option>`;
+  }
+  INDIAN_STATES_AND_UTS.forEach(state => {
+    const isSel = (selected || '').toLowerCase() === state.toLowerCase();
+    html += `<option value="${state}" ${isSel ? 'selected' : ''}>${state}</option>`;
+  });
+  return html;
+}

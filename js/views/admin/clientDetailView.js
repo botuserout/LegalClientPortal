@@ -65,7 +65,8 @@ export async function renderAdminClientDetail(clientId) {
               </button>
             </div>
           ` : services.map(srv => {
-            const currentStageObj = srv.stages[srv.currentStageIndex] || srv.stages[0];
+            const currentStageObj = (srv.stages && srv.stages.length) ? (srv.stages[srv.currentStageIndex] || srv.stages[0]) : null;
+            const stageName = currentStageObj?.name || currentStageObj?.stageName || srv.currentStage || 'Application Processing';
 
             return `
               <div class="service-card">
@@ -81,7 +82,7 @@ export async function renderAdminClientDetail(clientId) {
                   <div class="service-stage-box">
                     <div>
                       <div class="stage-label">Current Stage</div>
-                      <div class="stage-name">${currentStageObj.name}</div>
+                      <div class="stage-name">${stageName}</div>
                     </div>
                   </div>
 
@@ -130,24 +131,48 @@ export function bindAdminClientDetailEvents() {
 
             <div class="grid-2">
               <div class="form-group">
-                <label class="form-label">Select Service *</label>
-                <select class="form-control" id="as-service-type" required>
-                  <option value="Company Incorporation">Company Incorporation</option>
-                  <option value="GST Registration">GST Registration</option>
-                  <option value="MSME Registration">MSME Registration</option>
-                  <option value="Startup India Recognition">Startup India Recognition</option>
-                  <option value="Annual Corporate Compliance">Annual Corporate Compliance</option>
-                  <option value="Trademark Registration">Trademark Registration</option>
+                <label class="form-label">Primary Service *</label>
+                <select class="form-control" id="as-primary-service" required>
+                  <option value="Private Limited">Private Limited</option>
+                  <option value="LLP">LLP</option>
+                  <option value="OPC">OPC</option>
+                  <option value="Section - 8">Section - 8</option>
+                  <option value="Sole Proprietorship">Sole Proprietorship</option>
+                  <option value="Partnership Firm">Partnership Firm</option>
+                  <option value="Others">Others</option>
                 </select>
               </div>
 
               <div class="form-group">
-                <label class="form-label">Entity Constitution *</label>
-                <select class="form-control" id="as-company-type" required>
-                  <option value="Private Limited">Private Limited</option>
-                  <option value="LLP">LLP</option>
-                  <option value="Proprietorship">Proprietorship</option>
+                <label class="form-label">Miscellaneous Services</label>
+                <select class="form-control" id="as-misc-service">
+                  <option value="None">None</option>
+                  <option value="GST">GST</option>
+                  <option value="MSME">MSME</option>
+                  <option value="StartUp">StartUp</option>
+                  <option value="Trademark">Trademark</option>
+                  <option value="Compliance">Compliance</option>
                 </select>
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="form-group">
+                <label class="form-label" for="as-dsc-count">Number of DSC</label>
+                <input type="number" id="as-dsc-count" class="form-control" min="0" max="20" placeholder="e.g. 2" value="2" />
+                <div class="form-hint">Digital Signature Certificates count</div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="as-name-run">Name Reservation</label>
+                <div class="form-checkbox-card" onclick="document.getElementById('as-name-run').click()">
+                  <label class="form-checkbox-card-inner" onclick="event.stopPropagation()">
+                    <input type="checkbox" id="as-name-run" />
+                    <span>Enable Name RUN</span>
+                  </label>
+                  <span class="form-checkbox-badge">Fast-Track</span>
+                </div>
+                <div class="form-hint">Reserve Unique Name (RUN) fast-track filing</div>
               </div>
             </div>
 
@@ -180,20 +205,34 @@ export function bindAdminClientDetailEvents() {
           document.querySelector('.js-modal-cancel').onclick = () => modal.close();
           document.getElementById('save-add-service-btn').onclick = async () => {
             const submitBtn = document.getElementById('save-add-service-btn');
+            const primaryService = document.getElementById('as-primary-service').value;
+            const miscService = document.getElementById('as-misc-service').value;
+            const dscCount = parseInt(document.getElementById('as-dsc-count').value || '2', 10);
+            const nameRun = document.getElementById('as-name-run').checked;
+
+            const miscLabel = (miscService && miscService !== 'None') ? ` + ${miscService}` : '';
+            const fullServiceName = `${primaryService}${miscLabel}`;
+
             submitBtn.disabled = true;
             submitBtn.textContent = 'Saving...';
 
             await serviceService.addServiceToClient(clientId, {
-              serviceType: document.getElementById('as-service-type').value,
-              companyType: document.getElementById('as-company-type').value,
+              serviceType: fullServiceName,
+              primaryService,
+              miscService,
+              companyType: primaryService,
+              dscCount: isNaN(dscCount) ? 2 : dscCount,
+              nameRun,
               totalAmount: document.getElementById('as-total').value,
               paidAmount: document.getElementById('as-paid').value,
               spocId: document.getElementById('as-spoc').value
             });
 
-            toast.success('Service Added', `New service added successfully. Customer continues using the same login!`);
+            toast.success('Service Added', `${fullServiceName} added successfully. Customer continues using the same login!`);
             modal.close();
-            window.location.reload();
+            if (window.appInstance) {
+              window.appInstance.handleRoute();
+            }
           };
         }
       });

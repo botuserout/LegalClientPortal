@@ -5,6 +5,7 @@
 
 import { authService } from '../../services/authService.js';
 import { toast } from '../../ui/toast.js';
+import { renderStateOptionsHtml } from '../../config.js';
 
 export function renderClientRegister() {
   return `
@@ -83,21 +84,8 @@ export function renderClientRegister() {
 
             <div class="form-group" style="margin-bottom: 1.2rem;">
               <label class="form-label" for="reg-state">State / Territory *</label>
-              <select id="reg-state" class="form-control" required style="background-color: #1e293b; color: #ffffff;">
-                <option value="Gujarat" selected>Gujarat</option>
-                <option value="Maharashtra">Maharashtra</option>
-                <option value="Karnataka">Karnataka</option>
-                <option value="Delhi">Delhi</option>
-                <option value="Tamil Nadu">Tamil Nadu</option>
-                <option value="Telangana">Telangana</option>
-                <option value="Rajasthan">Rajasthan</option>
-                <option value="Uttar Pradesh">Uttar Pradesh</option>
-                <option value="West Bengal">West Bengal</option>
-                <option value="Kerala">Kerala</option>
-                <option value="Madhya Pradesh">Madhya Pradesh</option>
-                <option value="Punjab">Punjab</option>
-                <option value="Haryana">Haryana</option>
-                <option value="Other">Other</option>
+              <select id="reg-state" class="form-control" required style="background-color: #131b2e; color: #ffffff;">
+                ${renderStateOptionsHtml('Gujarat')}
               </select>
             </div>
 

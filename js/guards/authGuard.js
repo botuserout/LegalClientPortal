@@ -82,6 +82,19 @@ export const authGuard = {
 
     // Authenticated: Client portal route protection
     if (cleanRoute.startsWith('client')) {
+      if (isAdmin) {
+        // Administrative account attempting to view client views: redirect to corresponding admin workspace
+        if (cleanRoute === 'client/documents') {
+          return { allowed: false, redirectTo: 'admin/documents', reason: 'REDIRECT_ADMIN_ROLE' };
+        }
+        if (cleanRoute === 'client/services') {
+          return { allowed: false, redirectTo: 'admin/services', reason: 'REDIRECT_ADMIN_ROLE' };
+        }
+        if (cleanRoute === 'client/quote-requests') {
+          return { allowed: false, redirectTo: 'admin/quote-requests', reason: 'REDIRECT_ADMIN_ROLE' };
+        }
+        return { allowed: false, redirectTo: 'admin/dashboard', reason: 'REDIRECT_ADMIN_ROLE' };
+      }
       return { allowed: true, redirectTo: null, reason: 'CLIENT_AUTHORIZED' };
     }
 

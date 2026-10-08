@@ -21,16 +21,18 @@ export async function renderAdminSpocs() {
         <div class="card">
           <div class="card-body">
             <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-              <img src="${spoc.avatar}" alt="${spoc.name}" style="width: 56px; height: 56px; border-radius: 50%; object-fit: cover;" />
+              <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, rgba(212, 175, 55, 0.22), rgba(212, 175, 55, 0.06)); border: 1.5px solid var(--primary-500); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--primary-500); font-size: 1.1rem; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);">
+                ${spoc.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+              </div>
               <div>
-                <h3 style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700;">${spoc.name}</h3>
+                <h3 style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700; margin-bottom: 0.2rem;">${spoc.name}</h3>
                 <div style="font-size: 0.8125rem; color: var(--primary-500); font-weight: 600;">${spoc.title}</div>
               </div>
             </div>
 
-            <div style="background-color: var(--bg-app); border-radius: var(--radius-md); padding: 0.75rem 1rem; margin-bottom: 1rem; display: flex; justify-content: space-between;">
-              <span style="font-size: 0.8125rem; color: var(--text-muted);">Assigned Clients</span>
-              <strong style="font-weight: 700;">${spoc.assignedClientsCount} Services</strong>
+            <div style="background-color: var(--bg-app); border: 1px solid var(--divider); border-radius: var(--radius-md); padding: 0.75rem 1rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 0.8125rem; color: var(--text-muted); font-weight: 600;">Assigned Workload</span>
+              <strong style="font-weight: 700; color: var(--text-main); font-size: 0.9375rem;">${spoc.activeWorkload !== undefined ? spoc.activeWorkload : (spoc.assignedClientsCount || 0)} Services</strong>
             </div>
 
             <div style="font-size: 0.8125rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 0.35rem;">

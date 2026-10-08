@@ -111,7 +111,39 @@ export const clientService = {
    * Retrieves aggregated dashboard data for the authenticated client.
    */
   async getClientDashboard(clientId) {
-    const resolvedId = clientId || (authState.getUser()?.clientId) || (authState.getUser()?.userId) || null;
+    const user = authState.getUser();
+    const resolvedId = clientId || user?.clientId || user?.userId || null;
+
+    if (CONFIG.isLiveEndpointConfigured()) {
+      try {
+        const res = await apiClient.post('getClientDashboard', { client_id: resolvedId, clientId: resolvedId });
+        if (res && res.success && res.data) {
+          const d = res.data;
+          const srvs = (d.services || []).map(normalizeService);
+          const result = {
+            client: normalizeClient(d.client) || {
+              id: resolvedId,
+              clientId: resolvedId,
+              companyName: user?.companyName || user?.name || 'Valued Client',
+              contactPerson: user?.contactPerson || user?.name || 'Client'
+            },
+            services: srvs,
+            metrics: d.metrics || {
+              activeServices: srvs.filter(s => s.status !== 'Completed').length,
+              completedServices: srvs.filter(s => s.status === 'Completed').length,
+              pendingDocsCount: 0,
+              totalDueAmount: srvs.reduce((sum, s) => sum + (s.remainingAmount || 0), 0)
+            },
+            notifications: d.notifications || [],
+            spoc: d.spoc || null
+          };
+          return result;
+        }
+      } catch (err) {
+        console.warn('Live getClientDashboard error, falling back:', err);
+      }
+    }
+
     const client = resolvedId ? dataStore.getClientById(resolvedId) : null;
     const services = resolvedId ? dataStore.getServicesByClientId(resolvedId) : [];
 
@@ -148,15 +180,6 @@ export const clientService = {
       spoc: dataStore.getSpocs()[0] || null
     };
 
-    // Non-blocking background sync with live backend
-    if (CONFIG.isLiveEndpointConfigured()) {
-      apiClient.post('getClientDashboard').then(res => {
-        if (res.success && res.data && res.data.client) {
-          dataStore.updateClient(res.data.client.clientId, res.data.client);
-        }
-      }).catch(() => {});
-    }
-
     return instantResult;
   },
 
@@ -166,12 +189,19 @@ export const clientService = {
   async getClientServices() {
     const user = authState.getUser();
     const resolvedId = user?.clientId || user?.userId || null;
-    const instantServices = resolvedId ? dataStore.getServicesByClientId(resolvedId).map(normalizeService) : [];
 
     if (CONFIG.isLiveEndpointConfigured()) {
-      apiClient.post('getClientServices').catch(() => {});
+      try {
+        const res = await apiClient.post('getClientServices', { client_id: resolvedId, clientId: resolvedId });
+        if (res && res.success && Array.isArray(res.data)) {
+          return res.data.map(normalizeService);
+        }
+      } catch (err) {
+        console.warn('Live getClientServices error:', err);
+      }
     }
 
+    const instantServices = resolvedId ? dataStore.getServicesByClientId(resolvedId).map(normalizeService) : [];
     return instantServices;
   },
 

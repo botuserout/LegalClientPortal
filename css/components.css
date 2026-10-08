@@ -476,9 +476,9 @@ select option {
 }
 
 .timeline-step.pending .step-node {
-  background-color: #ffffff;
-  border: 2px solid var(--border-strong);
-  color: var(--text-light);
+  background-color: #1e293b;
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  color: #94a3b8;
 }
 
 @keyframes pulse-ring {
@@ -693,12 +693,13 @@ select option {
   margin: 0.35rem 0 1.25rem 0;
 }
 
-/* Skeleton Loaders */
+/* Skeleton Loaders - Luxury Nocturnal Dark Theme */
 .skeleton {
-  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background: linear-gradient(90deg, #131b2e 25%, #1c2640 50%, #131b2e 75%);
   background-size: 200% 100%;
-  animation: skeleton-shimmer 1.5s infinite;
-  border-radius: var(--radius-sm);
+  animation: skeleton-shimmer 1.5s infinite ease-in-out;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(212, 175, 55, 0.12);
 }
 @keyframes skeleton-shimmer {
   0% { background-position: 200% 0; }

@@ -70,23 +70,26 @@ export function renderTimeline(stages, currentStageIndex = 0) {
       ${stages.map((st, idx) => {
         let stateClass = 'pending';
         let nodeIcon = (idx + 1).toString();
+        const statusUpper = String(st.status || st.stageStatus || '').toUpperCase();
 
-        if (st.status === 'COMPLETED' || idx < currentStageIndex) {
+        if (statusUpper === 'COMPLETED' || idx < currentStageIndex) {
           stateClass = 'completed';
           nodeIcon = icons.check;
-        } else if (st.status === 'CURRENT' || idx === currentStageIndex) {
+        } else if (statusUpper === 'CURRENT' || statusUpper === 'IN PROGRESS' || statusUpper === 'IN_PROGRESS' || idx === currentStageIndex) {
           stateClass = 'current';
           nodeIcon = '●';
         }
+
+        const stageName = st.name || st.stageName || st.stage_name || `Stage ${idx + 1}`;
 
         return `
           <div class="timeline-step ${stateClass}">
             <div class="step-node">${nodeIcon}</div>
             <div class="step-content">
-              <div class="step-title">${st.name}</div>
+              <div class="step-title" style="font-weight: 700; font-size: 0.9375rem;">Stage ${idx + 1}: ${stageName}</div>
               ${st.completedOn ? `<div class="step-date">${icons.check} Completed on ${st.completedOn}</div>` : ''}
-              ${stateClass === 'current' ? `<div class="step-date" style="color: var(--primary-500);">${icons.sync} Currently in progress</div>` : ''}
-              ${st.description ? `<div class="step-desc">${st.description}</div>` : ''}
+              ${stateClass === 'current' ? `<div class="step-date" style="color: var(--primary-500); font-weight: 600;">${icons.sync} Currently in progress</div>` : ''}
+              ${st.description ? `<div class="step-desc" style="color: var(--text-muted); font-size: 0.8125rem; margin-top: 0.25rem; line-height: 1.4;">${st.description}</div>` : ''}
             </div>
           </div>
         `;
@@ -124,10 +127,13 @@ export function renderQRDocCard(serviceId, docList = []) {
 
 export function renderSpocCard(spoc) {
   if (!spoc) return '';
+  const initials = (spoc.name || 'LS').split(' ').map(n => n[0]).join('').slice(0, 2);
 
   return `
     <div class="spoc-card">
-      <img src="${spoc.avatar}" alt="${spoc.name}" class="spoc-avatar" />
+      <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, rgba(212, 175, 55, 0.22), rgba(212, 175, 55, 0.06)); border: 1.5px solid var(--primary-500); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--primary-500); font-size: 1.05rem; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);">
+        ${initials}
+      </div>
       <div class="spoc-details">
         <h4 class="spoc-name">${spoc.name}</h4>
         <div class="spoc-title">${spoc.title}</div>

@@ -63,7 +63,11 @@ export function bindDemoBarEvents(routerNavigate) {
       if (confirm('Reset prototype data state to initial clean default?')) {
         dataStore.resetStore();
         toast.success('Data Reset', 'All data has been reset to clean state.');
-        window.location.reload();
+        if (window.appInstance) {
+          window.appInstance.handleRoute();
+        } else {
+          window.location.reload();
+        }
       }
     }
   });

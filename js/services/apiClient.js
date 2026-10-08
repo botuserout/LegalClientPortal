@@ -95,6 +95,14 @@ export const apiClient = {
    */
   clearCache() {
     memoryCache.clear();
+    try {
+      for (let i = sessionStorage.length - 1; i >= 0; i--) {
+        const key = sessionStorage.key(i);
+        if (key && key.startsWith('api_cache_')) {
+          sessionStorage.removeItem(key);
+        }
+      }
+    } catch (e) {}
   },
 
   /**
@@ -129,24 +137,36 @@ export const apiClient = {
     const activeToken = authState.getToken();
     const cacheKey = isRead ? `${action}:${JSON.stringify(payload)}:${activeToken || ''}` : null;
 
-    // Check fast cache first
-    if (isRead && !options.forceFresh && cacheKey && memoryCache.has(cacheKey)) {
-      const cached = memoryCache.get(cacheKey);
-      if (Date.now() - cached.timestamp < CACHE_TTL_MS) {
-        // Return cached result INSTANTLY (0ms)
-        return cached.data;
+    // Check fast cache first (in-memory + sessionStorage)
+    if (isRead && !options.forceFresh && cacheKey) {
+      if (memoryCache.has(cacheKey)) {
+        const cached = memoryCache.get(cacheKey);
+        if (Date.now() - cached.timestamp < CACHE_TTL_MS) {
+          return cached.data;
+        }
+      } else {
+        try {
+          const sessVal = sessionStorage.getItem('api_cache_' + cacheKey);
+          if (sessVal) {
+            const parsed = JSON.parse(sessVal);
+            if (Date.now() - parsed.timestamp < CACHE_TTL_MS) {
+              memoryCache.set(cacheKey, parsed);
+              return parsed.data;
+            }
+          }
+        } catch (e) {}
       }
     }
 
     // Invalidate cache on mutations (non-read actions)
     if (!isRead && action !== 'login' && action !== 'getMe') {
-      memoryCache.clear();
+      this.clearCache();
     }
 
     startProgress();
 
     const endpointUrl = CONFIG.getEndpointUrl();
-    const timeoutMs = options.timeoutMs || CONFIG.REQUEST_TIMEOUT_MS;
+    const timeoutMs = options.timeoutMs || CONFIG.REQUEST_TIMEOUT_MS || 30000;
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -211,12 +231,16 @@ export const apiClient = {
         };
       }
 
-      // Store in memory cache for future instant returns
+      // Store in memory cache & sessionStorage for future instant returns
       if (isRead && cacheKey && resJson.success) {
-        memoryCache.set(cacheKey, {
+        const cacheEntry = {
           data: resJson,
           timestamp: Date.now()
-        });
+        };
+        memoryCache.set(cacheKey, cacheEntry);
+        try {
+          sessionStorage.setItem('api_cache_' + cacheKey, JSON.stringify(cacheEntry));
+        } catch (e) {}
       }
 
       return resJson;
@@ -245,7 +269,7 @@ export const apiClient = {
    */
   async get(action, params = {}, options = {}) {
     const endpointUrl = CONFIG.getEndpointUrl();
-    const timeoutMs = options.timeoutMs || CONFIG.REQUEST_TIMEOUT_MS;
+    const timeoutMs = options.timeoutMs || CONFIG.REQUEST_TIMEOUT_MS || 30000;
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 

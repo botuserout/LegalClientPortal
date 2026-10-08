@@ -69,9 +69,10 @@ export const quoteService = {
     const localResult = dataStore.createQuoteRequest(requestInfo);
 
     if (CONFIG.isLiveEndpointConfigured()) {
-      try {
-        await apiClient.post('createQuoteRequest', { quoteData: requestInfo });
-      } catch (e) {}
+      const res = await apiClient.post('createQuoteRequest', { quoteData: requestInfo });
+      if (!res || !res.success) {
+        throw new Error(res?.error?.message || 'Failed to submit quote request on server.');
+      }
     }
 
     return localResult;
@@ -84,16 +85,17 @@ export const quoteService = {
     const localResult = dataStore.updateQuoteStatus(quoteId, status, amount, remarks);
 
     if (CONFIG.isLiveEndpointConfigured()) {
-      try {
-        await apiClient.post('adminUpdateQuoteStatus', {
-          quote_id: quoteId,
-          quoteId: quoteId,
-          status: status,
-          amount: amount,
-          quoteAmount: amount,
-          remarks: remarks
-        });
-      } catch (e) {}
+      const res = await apiClient.post('adminUpdateQuoteStatus', {
+        quote_id: quoteId,
+        quoteId: quoteId,
+        status: status,
+        amount: amount,
+        quoteAmount: amount,
+        remarks: remarks
+      });
+      if (!res || !res.success) {
+        throw new Error(res?.error?.message || 'Failed to update quote status on server.');
+      }
     }
 
     return localResult;

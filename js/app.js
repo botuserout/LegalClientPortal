@@ -30,7 +30,7 @@ import { renderClientSupport } from './views/client/supportView.js';
 import { renderClientProfile, bindClientProfileEvents } from './views/client/profileView.js';
 
 // Admin Portal Views
-import { renderAdminDashboard } from './views/admin/dashboardView.js';
+import { renderAdminDashboard, bindAdminDashboardEvents } from './views/admin/dashboardView.js';
 import { renderAdminClients, bindAdminClientsEvents } from './views/admin/clientsView.js';
 import { renderAdminClientDetail, bindAdminClientDetailEvents } from './views/admin/clientDetailView.js';
 import { renderAdminServicesConfig, bindAdminServicesConfigEvents } from './views/admin/servicesConfigView.js';
@@ -65,16 +65,13 @@ class App {
     window.addEventListener('hashchange', () => this.handleRoute());
     bindDemoBarEvents((route) => this.navigate(route));
 
-    // Re-verify session with authoritative backend if token exists
-    if (authService.isAuthenticated()) {
-      try {
-        await authService.getMe();
-      } catch (e) {
-        // Fallback handled by authService
-      }
-    }
-
+    // Immediate initial route execution (fast path - 0ms blocking)
     this.handleRoute();
+
+    // Re-verify session with authoritative backend in background without stalling UX
+    if (authService.isAuthenticated()) {
+      authService.getMe().catch(() => {});
+    }
   }
 
   navigate(route) {
@@ -83,8 +80,8 @@ class App {
       this.handleRoute();
       return;
     }
+    // Changing the hash triggers 'hashchange' which dispatches handleRoute()
     window.location.hash = targetHash;
-    this.handleRoute();
   }
 
   async handleRoute() {
@@ -158,6 +155,52 @@ class App {
     let viewHtml = '';
     let pageTitle = 'Dashboard';
     let breadcrumbs = [page];
+
+    // 3. Pre-mount Authenticated Layout Shell if not present (Instant 0ms UI Feedback)
+    let existingLayout = this.root.querySelector('.layout-wrapper');
+    if (!existingLayout) {
+      const demoBarHtml = renderDemoBar(this.currentRoute);
+      document.body.classList.toggle('has-demo-bar', !!demoBarHtml);
+
+      this.root.innerHTML = `
+        ${demoBarHtml}
+        <div class="layout-wrapper">
+          ${renderSidebar(this.currentRoute)}
+          <div class="main-wrapper">
+            ${renderHeader(pageTitle, breadcrumbs)}
+            <main class="content-area">
+              <div style="padding: 0.5rem 0;">
+                <div style="margin-bottom: 2rem;">
+                  <div class="skeleton" style="width: 220px; height: 32px; margin-bottom: 0.6rem; border-radius: 8px;"></div>
+                  <div class="skeleton" style="width: 360px; height: 16px; border-radius: 6px;"></div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+                  <div class="skeleton" style="height: 104px; border-radius: 12px;"></div>
+                  <div class="skeleton" style="height: 104px; border-radius: 12px;"></div>
+                  <div class="skeleton" style="height: 104px; border-radius: 12px;"></div>
+                  <div class="skeleton" style="height: 104px; border-radius: 12px;"></div>
+                </div>
+                <div class="skeleton" style="width: 100%; height: 320px; border-radius: 12px;"></div>
+              </div>
+            </main>
+          </div>
+        </div>
+      `;
+      this.bindGlobalEvents();
+      existingLayout = this.root.querySelector('.layout-wrapper');
+    }
+
+    // Instantly highlight target route in sidebar
+    const sidebarLinks = this.root.querySelectorAll('.nav-item');
+    sidebarLinks.forEach(link => {
+      const href = link.getAttribute('href') || '';
+      const targetRoute = href.replace(/^#\/?/, '').split('?')[0];
+      if (targetRoute && (cleanRoute === targetRoute || cleanRoute.startsWith(targetRoute + '/'))) {
+        link.classList.add('active');
+      } else if (href.startsWith('#')) {
+        link.classList.remove('active');
+      }
+    });
 
     try {
       if (portal === 'client') {
@@ -256,55 +299,29 @@ class App {
       viewHtml = `<div class="empty-state"><h3>Something went wrong</h3><p>${e.message}</p></div>`;
     }
 
-    // 4. Instant DOM Update: If layout shell already exists, update only content-area and active states
-    const existingLayout = this.root.querySelector('.layout-wrapper');
+    // 4. Update content-area and header seamlessly
     const existingContentArea = this.root.querySelector('.content-area');
-
-    if (existingLayout && existingContentArea) {
-      // Fast path: update content area, header and sidebar active classes directly (0ms layout preserve)
+    if (existingContentArea) {
       existingContentArea.innerHTML = viewHtml;
+    }
 
-      // Update sidebar active link
-      const sidebarLinks = this.root.querySelectorAll('.nav-item');
-      sidebarLinks.forEach(link => {
-        const href = link.getAttribute('href') || '';
-        const targetRoute = href.replace(/^#\/?/, '').split('?')[0];
-        if (targetRoute && (cleanRoute === targetRoute || cleanRoute.startsWith(targetRoute + '/'))) {
-          link.classList.add('active');
-        } else if (href.startsWith('#')) {
-          link.classList.remove('active');
-        }
-      });
-
-      // Update header title and breadcrumbs
-      const headerTitle = this.root.querySelector('.header-title');
-      if (headerTitle) headerTitle.textContent = pageTitle;
-      const breadcrumbEl = this.root.querySelector('.breadcrumb');
-      if (breadcrumbEl && breadcrumbs) {
-        breadcrumbEl.innerHTML = breadcrumbs.map((b, i) => 
-          i === breadcrumbs.length - 1 ? `<span class="current">${b}</span>` : `<span>${b}</span>`
-        ).join(' / ');
-      }
-    } else {
-      // Initial mount: Assemble standard authenticated layout shell
-      const demoBarHtml = renderDemoBar(this.currentRoute);
-      document.body.classList.toggle('has-demo-bar', !!demoBarHtml);
-
-      this.root.innerHTML = `
-        ${demoBarHtml}
-        <div class="layout-wrapper">
-          ${renderSidebar(this.currentRoute)}
-          <div class="main-wrapper">
-            ${renderHeader(pageTitle, breadcrumbs)}
-            <main class="content-area">
-              ${viewHtml}
-            </main>
-          </div>
-        </div>
+    // Update header title and breadcrumbs
+    const headerTitle = this.root.querySelector('.header-title');
+    if (headerTitle) headerTitle.textContent = pageTitle;
+    const breadcrumbEl = this.root.querySelector('.breadcrumbs');
+    if (breadcrumbEl && breadcrumbs) {
+      const isAdmin = authService.isAdmin();
+      breadcrumbEl.innerHTML = `
+        <span>${isAdmin ? 'Admin' : 'Client'}</span>
+        <span class="crumb-sep">/</span>
+        ${breadcrumbs.map((b, idx) => `
+          <span class="${idx === breadcrumbs.length - 1 ? 'crumb-active' : ''}">${b}</span>
+          ${idx < breadcrumbs.length - 1 ? '<span class="crumb-sep">/</span>' : ''}
+        `).join('')}
       `;
     }
 
-    // 5. Bind global navigation and interactive handlers
+    // 5. Bind interactive handlers for current view
     this.bindGlobalEvents();
   }
 
@@ -356,6 +373,7 @@ class App {
 
     // View-specific event bindings
     bindHeaderEvents();
+    bindAdminDashboardEvents();
     bindClientServiceDetailEvents();
     bindClientNewServicesEvents();
     bindClientProfileEvents();
@@ -399,8 +417,13 @@ document.addEventListener('click', (e) => {
   }
 }, true);
 
-// Instantiate and launch application on DOM ready
-document.addEventListener('DOMContentLoaded', () => {
+// Instantiate and launch application immediately on DOM ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    const app = new App();
+    app.init();
+  });
+} else {
   const app = new App();
   app.init();
-});
+}

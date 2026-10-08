@@ -48,21 +48,32 @@ class AuthService {
       password: password
     });
 
-    if (response.success && response.data && response.data.token) {
-      const user = response.data.user;
-      authState.setSession(response.data.token, user, rememberMe);
+    const token = response.data?.token || response.token;
+    const user = response.data?.user || response.user;
+    if (response.success && token && user) {
+      authState.setSession(token, user, rememberMe);
 
       return {
         success: true,
         user: authState.getUser(),
-        token: response.data.token,
+        token: token,
         firstLogin: !!(user && user.firstLogin),
         message: response.message || 'Authentication successful.'
       };
     }
 
-    // Local development & standalone failover handler
+    // If live endpoint is configured, NEVER silently fall back to mock credentials
     if (!response.success) {
+      if (CONFIG.isLiveEndpointConfigured()) {
+        return {
+          success: false,
+          error: normalizeApiError(response.error || {
+            code: ERROR_CODES.SERVER_ERROR,
+            message: 'Unable to connect to the authentication server. Please check your credentials or network.'
+          })
+        };
+      }
+
       const cleanLogin = loginId.trim().toLowerCase();
       const savedAdminPwd = localStorage.getItem('mock_pwd_ADM001') || localStorage.getItem('mock_pwd_legalsthal@gmail.com');
 
@@ -261,8 +272,9 @@ class AuthService {
     }
 
     const response = await apiClient.post('getMe', { token });
-    if (response.success && response.data) {
-      authState.updateUser(response.data);
+    const userData = response.data?.user || response.data || response.user;
+    if (response.success && userData) {
+      authState.updateUser(userData);
       return {
         success: true,
         user: authState.getUser()

@@ -8,6 +8,7 @@ import { spocService } from '../../services/spocService.js';
 import { modal } from '../../ui/modal.js';
 import { toast } from '../../ui/toast.js';
 import { renderStatusBadge, icons } from '../../ui/components.js';
+import { renderStateOptionsHtml } from '../../config.js';
 
 export async function renderAdminClients() {
   const clients = await clientService.getClients();
@@ -35,13 +36,8 @@ export async function renderAdminClients() {
             <input type="text" id="client-search-input" placeholder="Search by name, email, ID..." />
           </div>
 
-          <select class="form-control" id="client-filter-state" style="width: 160px; padding: 0.55rem 0.85rem; background-color: #181f32; color: #f8fafc; border: 1px solid rgba(212, 175, 55, 0.3); border-radius: var(--radius-md);">
-            <option value="ALL">All States</option>
-            <option value="Gujarat">Gujarat</option>
-            <option value="Maharashtra">Maharashtra</option>
-            <option value="Karnataka">Karnataka</option>
-            <option value="Kerala">Kerala</option>
-            <option value="Telangana">Telangana</option>
+          <select class="form-control" id="client-filter-state" style="width: 210px; padding: 0.55rem 0.85rem; background-color: #131b2e; color: #f8fafc; border: 1px solid rgba(212, 175, 55, 0.3); border-radius: var(--radius-md);">
+            ${renderStateOptionsHtml('ALL', true, 'All States & UTs')}
           </select>
         </div>
 
@@ -114,6 +110,33 @@ export async function renderAdminClients() {
 let clientsEventsBound = false;
 
 export function bindAdminClientsEvents() {
+  const filterTable = () => {
+    const searchVal = (document.getElementById('client-search-input')?.value || '').toLowerCase().trim();
+    const stateVal = (document.getElementById('client-filter-state')?.value || 'ALL').toLowerCase().trim();
+    const rows = document.querySelectorAll('#clients-table tbody tr');
+
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      const stateCell = (row.children[4]?.textContent || '').toLowerCase().trim();
+      const matchesSearch = !searchVal || text.includes(searchVal);
+      const matchesState = stateVal === 'all' || stateCell.includes(stateVal);
+
+      if (matchesSearch && matchesState) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  };
+
+  document.addEventListener('input', (e) => {
+    if (e.target.id === 'client-search-input') filterTable();
+  });
+
+  document.addEventListener('change', (e) => {
+    if (e.target.id === 'client-filter-state') filterTable();
+  });
+
   if (clientsEventsBound) return;
   clientsEventsBound = true;
 
@@ -133,7 +156,11 @@ export function openCreateClientWizard() {
     mobile: '',
     state: 'Gujarat',
     address: '',
-    serviceType: 'Company Incorporation',
+    primaryService: 'Private Limited',
+    miscService: 'None',
+    dscCount: 2,
+    nameRun: false,
+    serviceType: 'Private Limited',
     companyType: 'Private Limited',
     totalAmount: 9999,
     paidAmount: 499,
@@ -193,11 +220,7 @@ export function openCreateClientWizard() {
             <div class="form-group">
               <label class="form-label">State / Region *</label>
               <select class="form-control" id="wz-state">
-                <option value="Gujarat" ${wizardData.state === 'Gujarat' ? 'selected' : ''}>Gujarat</option>
-                <option value="Maharashtra" ${wizardData.state === 'Maharashtra' ? 'selected' : ''}>Maharashtra</option>
-                <option value="Karnataka" ${wizardData.state === 'Karnataka' ? 'selected' : ''}>Karnataka</option>
-                <option value="Delhi" ${wizardData.state === 'Delhi' ? 'selected' : ''}>Delhi</option>
-                <option value="Telangana" ${wizardData.state === 'Telangana' ? 'selected' : ''}>Telangana</option>
+                ${renderStateOptionsHtml(wizardData.state || 'Gujarat')}
               </select>
             </div>
           </div>
@@ -207,25 +230,51 @@ export function openCreateClientWizard() {
       bodyHtml = `
         ${wizardBar}
         <form id="wz-step-2-form">
-          <div class="form-group">
-            <label class="form-label">Select Initial Service *</label>
-            <select class="form-control" id="wz-service-type">
-              <option value="Company Incorporation" ${wizardData.serviceType.includes('Incorporation') ? 'selected' : ''}>Company Incorporation</option>
-              <option value="GST Registration" ${wizardData.serviceType.includes('GST') ? 'selected' : ''}>GST Registration</option>
-              <option value="MSME Registration" ${wizardData.serviceType.includes('MSME') ? 'selected' : ''}>MSME Registration</option>
-              <option value="Startup India Recognition" ${wizardData.serviceType.includes('Startup') ? 'selected' : ''}>Startup India Recognition</option>
-              <option value="Annual Corporate Compliance" ${wizardData.serviceType.includes('Compliance') ? 'selected' : ''}>Annual Corporate Compliance</option>
-            </select>
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">Primary Service *</label>
+              <select class="form-control" id="wz-primary-service">
+                <option value="Private Limited" ${wizardData.primaryService === 'Private Limited' ? 'selected' : ''}>Private Limited</option>
+                <option value="LLP" ${wizardData.primaryService === 'LLP' ? 'selected' : ''}>LLP</option>
+                <option value="OPC" ${wizardData.primaryService === 'OPC' ? 'selected' : ''}>OPC</option>
+                <option value="Section - 8" ${wizardData.primaryService === 'Section - 8' ? 'selected' : ''}>Section - 8</option>
+                <option value="Sole Proprietorship" ${wizardData.primaryService === 'Sole Proprietorship' ? 'selected' : ''}>Sole Proprietorship</option>
+                <option value="Partnership Firm" ${wizardData.primaryService === 'Partnership Firm' ? 'selected' : ''}>Partnership Firm</option>
+                <option value="Others" ${wizardData.primaryService === 'Others' ? 'selected' : ''}>Others</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Miscellaneous Services</label>
+              <select class="form-control" id="wz-misc-service">
+                <option value="None" ${wizardData.miscService === 'None' ? 'selected' : ''}>None</option>
+                <option value="GST" ${wizardData.miscService === 'GST' ? 'selected' : ''}>GST</option>
+                <option value="MSME" ${wizardData.miscService === 'MSME' ? 'selected' : ''}>MSME</option>
+                <option value="StartUp" ${wizardData.miscService === 'StartUp' ? 'selected' : ''}>StartUp</option>
+                <option value="Trademark" ${wizardData.miscService === 'Trademark' ? 'selected' : ''}>Trademark</option>
+                <option value="Compliance" ${wizardData.miscService === 'Compliance' ? 'selected' : ''}>Compliance</option>
+              </select>
+            </div>
           </div>
 
-          <div class="form-group">
-            <label class="form-label">Entity Constitution</label>
-            <select class="form-control" id="wz-company-type">
-              <option value="Private Limited">Private Limited</option>
-              <option value="LLP">Limited Liability Partnership (LLP)</option>
-              <option value="One Person Company (OPC)">One Person Company (OPC)</option>
-              <option value="Sole Proprietorship">Sole Proprietorship</option>
-            </select>
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label" for="wz-dsc-count">Number of DSC</label>
+              <input type="number" id="wz-dsc-count" class="form-control" min="0" max="20" placeholder="e.g. 2" value="${wizardData.dscCount !== undefined ? wizardData.dscCount : 2}" />
+              <div class="form-hint">Digital Signature Certificates count</div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="wz-name-run">Name Reservation</label>
+              <div class="form-checkbox-card" onclick="document.getElementById('wz-name-run').click()">
+                <label class="form-checkbox-card-inner" onclick="event.stopPropagation()">
+                  <input type="checkbox" id="wz-name-run" ${wizardData.nameRun ? 'checked' : ''} />
+                  <span>Enable Name RUN</span>
+                </label>
+                <span class="form-checkbox-badge">Fast-Track</span>
+              </div>
+              <div class="form-hint">Reserve Unique Name (RUN) filing before SPICe+</div>
+            </div>
           </div>
         </form>
       `;
@@ -265,7 +314,10 @@ export function openCreateClientWizard() {
             <div><strong>Contact:</strong> ${wizardData.contactPerson} (${wizardData.mobile})</div>
             <div><strong>Email Login:</strong> ${wizardData.email}</div>
             <div><strong>State:</strong> ${wizardData.state}</div>
-            <div><strong>Service Onboarding:</strong> ${wizardData.serviceType} (${wizardData.companyType})</div>
+            <div><strong>Primary Service:</strong> ${wizardData.primaryService}</div>
+            ${wizardData.miscService && wizardData.miscService !== 'None' ? `<div><strong>Miscellaneous Services:</strong> ${wizardData.miscService}</div>` : ''}
+            <div><strong>Number of DSC:</strong> ${wizardData.dscCount}</div>
+            <div><strong>Name RUN:</strong> ${wizardData.nameRun ? 'Yes (Enabled)' : 'No'}</div>
             <div><strong>Total Fee:</strong> ₹${Number(wizardData.totalAmount).toLocaleString('en-IN')}</div>
             <div><strong>Paid Amount:</strong> ₹${Number(wizardData.paidAmount).toLocaleString('en-IN')}</div>
             <div><strong>Assigned SPOC:</strong> ${wizardData.spocId}</div>
@@ -320,8 +372,19 @@ export function openCreateClientWizard() {
 
               wizardData = { ...wizardData, companyName: name, contactPerson: contact, mobile, email, state };
             } else if (wizardStep === 2) {
-              wizardData.serviceType = dialog.querySelector('#wz-service-type').value;
-              wizardData.companyType = dialog.querySelector('#wz-company-type').value;
+              const primary = dialog.querySelector('#wz-primary-service').value;
+              const misc = dialog.querySelector('#wz-misc-service').value;
+              const dsc = parseInt(dialog.querySelector('#wz-dsc-count').value || '2', 10);
+              const run = dialog.querySelector('#wz-name-run').checked;
+
+              wizardData.primaryService = primary;
+              wizardData.miscService = misc;
+              wizardData.dscCount = isNaN(dsc) ? 2 : dsc;
+              wizardData.nameRun = run;
+
+              const miscLabel = (misc && misc !== 'None') ? ` + ${misc}` : '';
+              wizardData.serviceType = `${primary}${miscLabel}`;
+              wizardData.companyType = primary;
             } else if (wizardStep === 3) {
               wizardData.totalAmount = dialog.querySelector('#wz-total').value;
               wizardData.paidAmount = dialog.querySelector('#wz-paid').value;
@@ -343,7 +406,11 @@ export function openCreateClientWizard() {
             if (clientResult.success) {
               await serviceService.addServiceToClient(clientResult.client.id, {
                 serviceType: wizardData.serviceType,
-                companyType: wizardData.companyType,
+                primaryService: wizardData.primaryService,
+                miscService: wizardData.miscService,
+                companyType: wizardData.primaryService,
+                dscCount: wizardData.dscCount,
+                nameRun: wizardData.nameRun,
                 state: wizardData.state,
                 totalAmount: wizardData.totalAmount,
                 paidAmount: wizardData.paidAmount,
@@ -352,7 +419,9 @@ export function openCreateClientWizard() {
 
               toast.success('Client Created', `Account ${clientResult.client.companyName} (${clientResult.client.id}) created! Login credentials sent automatically.`);
               modal.close();
-              window.location.reload();
+              if (window.appInstance) {
+                window.appInstance.handleRoute();
+              }
             } else {
               toast.error('Error', clientResult.message);
               submitBtn.disabled = false;

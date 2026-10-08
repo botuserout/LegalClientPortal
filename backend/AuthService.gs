@@ -79,8 +79,23 @@ var AuthService = (function() {
         };
       }
 
-      // 3. Verify credentials against password column directly (safely converting numbers/strings & trimming)
-      var credentialVerified = (String(password || "").trim() === String(account.password || "").trim());
+      // 3. Verify credentials (against PBKDF2 hash or direct plaintext/sheet entry)
+      var credentialVerified = false;
+      if (account.passwordHash && typeof SecurityService !== "undefined" && typeof SecurityService.verifyPassword === "function") {
+        credentialVerified = SecurityService.verifyPassword(password, account.passwordSalt, account.passwordHash);
+      }
+      if (!credentialVerified && account.password) {
+        credentialVerified = (String(password || "").trim() === String(account.password || "").trim());
+        if (credentialVerified && typeof SecurityService !== "undefined" && !account.passwordHash) {
+          try {
+            var upgradedSalt = SecurityService.generateSalt();
+            var upgradedHash = SecurityService.hashPassword(password, upgradedSalt);
+            updatePasswordRecord(account, upgradedHash, upgradedSalt);
+          } catch (e) {
+            Logger.log("[WARN] Failed to upgrade plaintext password to PBKDF2: " + e.message);
+          }
+        }
+      }
 
       if (!credentialVerified) {
         // Record failed attempt
@@ -180,7 +195,13 @@ var AuthService = (function() {
       }
 
       // 1. Verify current password
-      var currentVerified = (String(currentPassword || "").trim() === String(account.password || "").trim());
+      var currentVerified = false;
+      if (account.passwordHash && typeof SecurityService !== "undefined" && typeof SecurityService.verifyPassword === "function") {
+        currentVerified = SecurityService.verifyPassword(currentPassword, account.passwordSalt, account.passwordHash);
+      }
+      if (!currentVerified && account.password) {
+        currentVerified = (String(currentPassword || "").trim() === String(account.password || "").trim());
+      }
 
       if (!currentVerified) {
         logSecurityAudit(session.userId, session.role, "PASSWORD_CHANGE_FAILED", "USER", session.userId, "Incorrect current password", metadata);
@@ -476,6 +497,8 @@ var AuthService = (function() {
 
         if (aEmail === normalizedLogin || (aAdminId && aAdminId === normalizedLogin) || (aLoginId && aLoginId === normalizedLogin)) {
           var aPwd = aMap["password"] !== undefined ? aData[i][aMap["password"]] : (aMap["legacy_password"] !== undefined ? aData[i][aMap["legacy_password"]] : "");
+          var aHash = aMap["password_hash"] !== undefined && aData[i][aMap["password_hash"]] ? aData[i][aMap["password_hash"]] : (String(aPwd || "").indexOf("pbkdf2_sha256$") === 0 ? aPwd : "");
+          var aSalt = aMap["password_salt"] !== undefined ? aData[i][aMap["password_salt"]] : "";
           var aFirstLoginVal = aMap["first_login"] !== undefined ? aData[i][aMap["first_login"]] : false;
           var aIsFirstLogin = (aFirstLoginVal === true || aFirstLoginVal === "TRUE" || aFirstLoginVal === 1);
 
@@ -488,6 +511,8 @@ var AuthService = (function() {
             name: aData[i][aMap["name"]],
             email: aEmail,
             password: aPwd,
+            passwordHash: aHash,
+            passwordSalt: aSalt,
             firstLogin: aIsFirstLogin,
             status: aData[i][aMap["status"]] || "ACTIVE",
             failedAttempts: parseInt(aData[i][aMap["failed_attempts"]] || 0, 10),
@@ -513,6 +538,8 @@ var AuthService = (function() {
           var firstLoginVal = cData[j][cMap["first_login"]];
           var isFirstLogin = (firstLoginVal === true || firstLoginVal === "TRUE" || firstLoginVal === 1);
           var cPwd = cMap["password"] !== undefined ? cData[j][cMap["password"]] : (cMap["legacy_password"] !== undefined ? cData[j][cMap["legacy_password"]] : "");
+          var cHash = cMap["password_hash"] !== undefined && cData[j][cMap["password_hash"]] ? cData[j][cMap["password_hash"]] : (String(cPwd || "").indexOf("pbkdf2_sha256$") === 0 ? cPwd : "");
+          var cSalt = cMap["password_salt"] !== undefined ? cData[j][cMap["password_salt"]] : "";
 
           return {
             rowNum: j + 1,
@@ -524,6 +551,8 @@ var AuthService = (function() {
             contactPerson: cData[j][cMap["contact_name"]] || cData[j][cMap["contact person"]],
             email: cEmail,
             password: String(cPwd !== undefined && cPwd !== null ? cPwd : "").trim(),
+            passwordHash: cHash,
+            passwordSalt: cSalt,
             firstLogin: isFirstLogin,
             status: cData[j][cMap["status"]],
             failedAttempts: parseInt(cData[j][cMap["failed_attempts"]] || 0, 10),
@@ -560,6 +589,8 @@ var AuthService = (function() {
             name: cData[i][cMap["name"]] || cData[i][cMap["company name"]],
             email: SecurityService.normalizeEmail(cData[i][cMap["email"]]),
             password: cMap["password"] !== undefined ? cData[i][cMap["password"]] : (cMap["legacy_password"] !== undefined ? cData[i][cMap["legacy_password"]] : ""),
+            passwordHash: cMap["password_hash"] !== undefined && cData[i][cMap["password_hash"]] ? cData[i][cMap["password_hash"]] : (String(cData[i][cMap["password"]] || "").indexOf("pbkdf2_sha256$") === 0 ? cData[i][cMap["password"]] : ""),
+            passwordSalt: cMap["password_salt"] !== undefined ? cData[i][cMap["password_salt"]] : "",
             firstLogin: (cData[i][cMap["first_login"]] === true || cData[i][cMap["first_login"]] === "TRUE"),
             status: cData[i][cMap["status"]]
           };
@@ -575,6 +606,8 @@ var AuthService = (function() {
       for (var j = 1; j < aData.length; j++) {
         if (aData[j][aMap["admin_id"]] === userId) {
           var aPwd = aMap["password"] !== undefined ? aData[j][aMap["password"]] : (aMap["legacy_password"] !== undefined ? aData[j][aMap["legacy_password"]] : "");
+          var aHash = aMap["password_hash"] !== undefined && aData[j][aMap["password_hash"]] ? aData[j][aMap["password_hash"]] : (String(aPwd || "").indexOf("pbkdf2_sha256$") === 0 ? aPwd : "");
+          var aSalt = aMap["password_salt"] !== undefined ? aData[j][aMap["password_salt"]] : "";
           var aFirstLoginVal = aMap["first_login"] !== undefined ? aData[j][aMap["first_login"]] : false;
           var aIsFirstLogin = (aFirstLoginVal === true || aFirstLoginVal === "TRUE" || aFirstLoginVal === 1);
 
@@ -587,6 +620,8 @@ var AuthService = (function() {
             name: aData[j][aMap["name"]],
             email: SecurityService.normalizeEmail(aData[j][aMap["email"]]),
             password: aPwd,
+            passwordHash: aHash,
+            passwordSalt: aSalt,
             firstLogin: aIsFirstLogin,
             status: aData[j][aMap["status"]] || "ACTIVE"
           };
@@ -630,8 +665,32 @@ var AuthService = (function() {
 
     var pwdIdx = colMap["password"] !== undefined ? colMap["password"] : colMap["legacy_password"];
     if (pwdIdx !== undefined) sheet.getRange(row, pwdIdx + 1).setValue(newPassword);
+
+    if (typeof SecurityService !== "undefined" && typeof SecurityService.generateSalt === "function") {
+      var salt = SecurityService.generateSalt();
+      var hash = SecurityService.hashPassword(newPassword, salt);
+      if (colMap["password_hash"] !== undefined) sheet.getRange(row, colMap["password_hash"] + 1).setValue(hash);
+      if (colMap["password_salt"] !== undefined) sheet.getRange(row, colMap["password_salt"] + 1).setValue(salt);
+    }
+
     if (colMap["first_login"] !== undefined) sheet.getRange(row, colMap["first_login"] + 1).setValue(firstLogin);
     if (colMap["password_changed_at"] !== undefined) sheet.getRange(row, colMap["password_changed_at"] + 1).setValue(new Date().toISOString());
+  }
+
+  function updatePasswordRecord(account, hash, salt) {
+    var ss = getSpreadsheetInstance();
+    var sheet = ss.getSheetByName(account.sheetName);
+    var colMap = getColumnIndexMap(getSheetHeaders(sheet), account.sheetName);
+    var row = account.rowNum;
+    var pwdIdx = colMap["password"] !== undefined ? colMap["password"] : colMap["legacy_password"];
+
+    if (colMap["password_hash"] !== undefined) {
+      sheet.getRange(row, colMap["password_hash"] + 1).setValue(hash);
+      if (colMap["password_salt"] !== undefined) sheet.getRange(row, colMap["password_salt"] + 1).setValue(salt);
+      if (pwdIdx !== undefined) sheet.getRange(row, pwdIdx + 1).setValue("");
+    } else if (pwdIdx !== undefined) {
+      sheet.getRange(row, pwdIdx + 1).setValue(hash);
+    }
   }
 
   /**

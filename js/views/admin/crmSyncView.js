@@ -129,7 +129,9 @@ export function bindAdminCrmSyncEvents() {
       const syncId = retryBtn.dataset.syncId;
       crmSyncService.retryCrmSyncRecord(syncId).then(() => {
         toast.success('CRM Sync Retried', 'Record manually synced with Zoho CRM successfully.');
-        window.location.reload();
+        if (window.appInstance) {
+          window.appInstance.handleRoute();
+        }
       });
     }
 

@@ -89,12 +89,13 @@ export const notificationService = {
     }
 
     if (CONFIG.isLiveEndpointConfigured()) {
-      try {
-        await apiClient.post('markNotificationRead', {
-          notification_id: notificationId,
-          notificationId: notificationId
-        });
-      } catch (e) {}
+      const res = await apiClient.post('markNotificationRead', {
+        notification_id: notificationId,
+        notificationId: notificationId
+      });
+      if (!res || !res.success) {
+        throw new Error(res?.error?.message || 'Failed to mark notification read on server.');
+      }
     }
 
     return { success: true };

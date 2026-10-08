@@ -244,8 +244,9 @@ function runAuthTests() {
       newClientRow[cMap["name"]] = "Test Auth Corp";
       newClientRow[cMap["email"]] = "authtest@legalsthal.com";
       newClientRow[cMap["status"]] = "ACTIVE";
-      newClientRow[cMap["password_hash"]] = hashA;
-      newClientRow[cMap["password_salt"]] = saltA;
+      if (cMap["password"] !== undefined) newClientRow[cMap["password"]] = hashA;
+      if (cMap["password_hash"] !== undefined) newClientRow[cMap["password_hash"]] = hashA;
+      if (cMap["password_salt"] !== undefined) newClientRow[cMap["password_salt"]] = saltA;
       newClientRow[cMap["first_login"]] = false;
       newClientRow[cMap["failed_attempts"]] = 0;
       clientSheet.appendRow(newClientRow);
@@ -425,6 +426,13 @@ function runAuthTests() {
     // ====================================================
 
     // SEC-MIG-001 & SEC-MIG-002: Plaintext migrated to PBKDF2 and wiped
+    if (cMap["password_hash"] === undefined) {
+      clientSheet.getRange(1, clientSheet.getLastColumn() + 1).setValue("password_hash");
+      clientSheet.getRange(1, clientSheet.getLastColumn() + 1).setValue("password_salt");
+      cHeaders = getSheetHeaders(clientSheet);
+      cMap = getColumnIndexMap(cHeaders, "Clients");
+    }
+
     var legacyPassIdx = cMap["password"] !== undefined ? cMap["password"] : cMap["legacy_password"];
     if (legacyPassIdx === undefined) {
       var colIdx = clientSheet.getLastColumn() + 1;
@@ -466,6 +474,12 @@ function runAuthTests() {
     // ====================================================
 
     // SEC-BOOT-001: Super Admin bootstrap
+    var adminSheet = ss.getSheetByName("AdminUsers");
+    var savedAdminRows = adminSheet ? adminSheet.getDataRange().getValues() : null;
+    if (adminSheet && adminSheet.getLastRow() > 1) {
+      adminSheet.data = [savedAdminRows[0]]; // retain only header row
+    }
+
     var secret = CONFIG.getAdminBootstrapSecret();
     var bootResp = AuthService.bootstrapSuperAdmin(secret, "superadmin@legalsthal.com", "Master Admin", "SuperAdmin@2026#Key");
     record("SEC-BOOT-001", "Admin bootstrap", bootResp.success === true && bootResp.data.role === "SUPER_ADMIN",
@@ -475,6 +489,10 @@ function runAuthTests() {
     var secondBootResp = AuthService.bootstrapSuperAdmin(secret, "anotheradmin@legalsthal.com", "Second Admin", "SecondAdmin@2026#Key");
     record("SEC-BOOT-002", "Second super-admin bootstrap blocked", secondBootResp.success === false,
       secondBootResp.success === false ? "Second bootstrap rejected." : "Security failure: Multiple super-admins bootstrapped!");
+
+    if (adminSheet && savedAdminRows) {
+      adminSheet.data = savedAdminRows;
+    }
 
     // ====================================================
     // SECTION 11: SENSITIVE DATA LEAKAGE PREVENTION
@@ -559,8 +577,8 @@ function findAccountDirect(ss, clientId) {
         userId: clientId,
         failedAttempts: parseInt(data[i][colMap["failed_attempts"]] || 0, 10),
         lockedUntil: data[i][colMap["locked_until"]],
-        passwordHash: data[i][colMap["password_hash"]],
-        passwordSalt: data[i][colMap["password_salt"]],
+        passwordHash: (colMap["password_hash"] !== undefined && data[i][colMap["password_hash"]] ? data[i][colMap["password_hash"]] : (data[i][colMap["password"]] && String(data[i][colMap["password"]]).indexOf("pbkdf2_sha256$") === 0 ? data[i][colMap["password"]] : null)),
+        passwordSalt: (colMap["password_salt"] !== undefined ? data[i][colMap["password_salt"]] : null),
         legacyPassword: (colMap["password"] !== undefined ? data[i][colMap["password"]] : (colMap["legacy_password"] !== undefined ? data[i][colMap["legacy_password"]] : null)),
         firstLogin: (data[i][colMap["first_login"]] === true || data[i][colMap["first_login"]] === "TRUE")
       };

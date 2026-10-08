@@ -11,8 +11,12 @@ const zlib = require('zlib');
 const PORT = process.env.PORT || 3000;
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxJ-MYnHlZAPQ8HjKzIjEl-YsxzXh8LtdN-V5fUEA8nT0EmXtun2BK4czmrTlVdShatzw/exec';
 
+// Prefer IPv4 for fast Google cloud connectivity
+const dns = require('dns');
+dns.setDefaultResultOrder('ipv4first');
+
 // Disable TLS reject unauthorized for local proxy to handle self-signed / enterprise proxies
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+const { handleAction: handleSupabaseAction } = require('./supabaseBackend.js');
 
 const serverCache = new Map();
 const staticCache = new Map();
@@ -68,23 +72,27 @@ const server = http.createServer(async (req, res) => {
           let parsedBody = {};
           try { parsedBody = JSON.parse(body); } catch (e) {}
           const action = parsedBody.action || '';
-          const isMutation = !action.startsWith('get') && !action.startsWith('adminGet') && action !== 'healthCheck';
+          const isMutation = !action.startsWith('get') && !action.startsWith('adminGet');
 
-          if (isMutation) {
-            serverCache.clear();
-          } else if (serverCache.has(body)) {
-            const cached = serverCache.get(body);
-            if (Date.now() - cached.time < 60000) {
-              console.log(`[API Proxy Cache HIT] Instant response for action: ${action}`);
+          // 1. Primary Engine: Direct Supabase PostgreSQL (sub-50ms execution)
+          const startTime = Date.now();
+          try {
+            const mergedPayload = (parsedBody.payload && typeof parsedBody.payload === 'object') ? { ...parsedBody, ...parsedBody.payload } : parsedBody;
+            const supaResult = await handleSupabaseAction(action, mergedPayload);
+            if (supaResult && supaResult.success !== undefined && supaResult.message !== `Unknown action: ${action}`) {
+              console.log(`[Supabase Engine] ${action} executed in ${Date.now() - startTime}ms`);
               res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-              res.end(cached.data);
+              res.end(JSON.stringify(supaResult));
               return;
             }
+          } catch (supaErr) {
+            console.warn(`[Supabase Engine Warning] ${action}:`, supaErr.message);
           }
 
-          console.log(`[API Proxy] Forwarding POST request (${action || 'unknown'}) to Apps Script...`);
+          // 2. Secondary Fallback: Apps Script Web App
+          console.log(`[Apps Script Fallback] Forwarding (${action || 'unknown'}) to Apps Script...`);
           const controller = new AbortController();
-          const timeoutMs = (action === 'login' || action === 'getMe') ? 4000 : 25000;
+          const timeoutMs = 60000; // Allow 60s for Apps Script execution, sheet lookups, and session creation
           const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
           const backendRes = await fetch(APPS_SCRIPT_URL, {
@@ -237,7 +245,7 @@ const server = http.createServer(async (req, res) => {
       const headers = {
         'Content-Type': contentType,
         'ETag': etag,
-        'Cache-Control': isHtml ? 'no-cache' : 'public, max-age=86400, stale-while-revalidate=3600'
+        'Cache-Control': 'no-cache, must-revalidate'
       };
 
       if (supportsGzip && gzBuf) {
