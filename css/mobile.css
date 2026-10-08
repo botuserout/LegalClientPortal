@@ -247,8 +247,7 @@ img, svg, video, canvas {
     display: none; /* Hide topbar search input to preserve space for notifications and profile */
   }
 
-  .card-header .search-box,
-  .card-body .search-box {
+  .card-body > .search-box {
     display: flex !important;
     width: 100% !important;
     max-width: 100% !important;

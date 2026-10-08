@@ -30,13 +30,13 @@ export async function renderAdminClients() {
     <!-- Filters & Table Card -->
     <div class="card">
       <div class="card-header" style="padding: 1.25rem 1.5rem;">
-        <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
-          <div class="search-box" style="width: 280px;">
+        <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; flex: 1; max-width: 540px;">
+          <div class="search-box" style="flex: 1; min-width: 220px; width: auto;">
             ${icons.search}
-            <input type="text" id="client-search-input" placeholder="Search by name, email, ID..." />
+            <input type="text" id="client-search-input" placeholder="Search by name, email, ID..." style="height: 40px; padding: 0 0.85rem 0 2.25rem; font-size: 0.875rem;" />
           </div>
 
-          <select class="form-control" id="client-filter-state" style="width: 210px; padding: 0.55rem 0.85rem; background-color: #131b2e; color: #f8fafc; border: 1px solid rgba(212, 175, 55, 0.3); border-radius: var(--radius-md);">
+          <select class="form-control" id="client-filter-state" style="width: 200px; height: 40px; padding: 0 2rem 0 0.85rem; font-size: 0.875rem; background-color: #131b2e; color: #f8fafc; border: 1px solid rgba(212, 175, 55, 0.3); border-radius: var(--radius-md); box-sizing: border-box;">
             ${renderStateOptionsHtml('ALL', true, 'All States & UTs')}
           </select>
         </div>

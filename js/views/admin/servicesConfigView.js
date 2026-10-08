@@ -39,24 +39,36 @@ export async function renderAdminServicesConfig() {
     <!-- Admin Metric Cards -->
     <div class="grid-4" style="margin-bottom: 1.5rem;">
       <div class="stat-card">
-        <div class="stat-label">Total Catalog Services</div>
-        <div class="stat-value">${totalServices}</div>
-        <div class="stat-meta" style="color: var(--accent-gold);">Across 10 Practice Categories</div>
+        <div class="stat-info">
+          <span class="stat-label">Total Catalog</span>
+          <span class="stat-value">${totalServices}</span>
+          <span class="stat-sub">10 Practice Categories</span>
+        </div>
+        <div class="stat-icon blue">${icons.services}</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">BRD Tracked Workflows</div>
-        <div class="stat-value" style="color: var(--success-main);">${brdTracked}</div>
-        <div class="stat-meta">Active Stage Progression Enabled</div>
+        <div class="stat-info">
+          <span class="stat-label">Tracked Workflows</span>
+          <span class="stat-value" style="color: var(--success-main);">${brdTracked}</span>
+          <span class="stat-sub">Stage Progression</span>
+        </div>
+        <div class="stat-icon green">${icons.check}</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Public Listings</div>
-        <div class="stat-value">${totalServices - brdTracked}</div>
-        <div class="stat-meta">Inquiry & Custom Quote Mode</div>
+        <div class="stat-info">
+          <span class="stat-label">Custom Quotes</span>
+          <span class="stat-value">${totalServices - brdTracked}</span>
+          <span class="stat-sub">Inquiry Listings</span>
+        </div>
+        <div class="stat-icon amber">${icons.documents}</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Active Offerings</div>
-        <div class="stat-value">${activeOfferings}</div>
-        <div class="stat-meta" style="color: var(--success-main);">Visible on Client Portal</div>
+        <div class="stat-info">
+          <span class="stat-label">Active Services</span>
+          <span class="stat-value">${activeOfferings}</span>
+          <span class="stat-sub">Live on Portal</span>
+        </div>
+        <div class="stat-icon blue">${icons.profile}</div>
       </div>
     </div>
 
