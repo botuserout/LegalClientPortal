@@ -7,6 +7,7 @@ import { clientService } from '../../services/clientService.js';
 import { serviceService } from '../../services/serviceService.js';
 import { documentService } from '../../services/documentService.js';
 import { quoteService } from '../../services/quoteService.js';
+import { spocService } from '../../services/spocService.js';
 import { modal } from '../../ui/modal.js';
 import { toast } from '../../ui/toast.js';
 import { renderStatusBadge, icons } from '../../ui/components.js';
@@ -200,7 +201,10 @@ export function bindAdminDashboardEvents() {
     if (!btn) return;
 
     btn.disabled = true;
-    const clients = await clientService.getClients();
+    const [clients, spocsList] = await Promise.all([
+      clientService.getClients(),
+      spocService.getSpocs()
+    ]);
     btn.disabled = false;
 
     if (!clients || clients.length === 0) {
@@ -282,9 +286,11 @@ export function bindAdminDashboardEvents() {
           <div class="form-group">
             <label class="form-label">Assign Dedicated SPOC *</label>
             <select class="form-control" id="das-spoc" required>
-              <option value="SPOC001">Harshit Srivastav (Senior Incorporation Expert)</option>
-              <option value="SPOC002" selected>Adv. Priya Sharma (Client Relationship Lead)</option>
-              <option value="SPOC003">CA Rohan Mehta (Tax & Compliance Specialist)</option>
+              ${spocsList.map(s => `
+                <option value="${s.id || s.spocId}">
+                  ${s.name} (${s.title || 'Legal Specialist'})
+                </option>
+              `).join('')}
             </select>
           </div>
         </form>

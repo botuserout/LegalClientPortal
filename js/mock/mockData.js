@@ -8,33 +8,43 @@ export const initialMockData = {
   spocs: [
     {
       id: "SPOC001",
-      name: "Priya Shah",
-      title: "Senior Incorporation Expert",
-      mobile: "+91 98980 11223",
-      email: "priya@legalsthal.com",
-      assignedClientsCount: 0,
-      status: "Active",
-      avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80"
-    },
-    {
-      id: "SPOC002",
-      name: "Rahul Sharma",
-      title: "Client Relationship Executive",
-      mobile: "+91 98765 11111",
-      email: "rahul@legalsthal.com",
-      assignedClientsCount: 0,
+      name: "Harshit Srivastav",
+      title: "Incorporation Expert",
+      mobile: "+91 9546273093",
+      email: "legalsthal@gmail.com",
+      assignedClientsCount: 2,
       status: "Active",
       avatar: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80"
     },
     {
+      id: "SPOC002",
+      name: "Mary Jaiswal",
+      title: "Client Relationship Executive",
+      mobile: "+91 77620 62093",
+      email: "legalsthal@gmail.com",
+      assignedClientsCount: 1,
+      status: "Active",
+      avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80"
+    },
+    {
       id: "SPOC003",
-      name: "Amit Verma",
-      title: "Tax & Compliance Specialist",
-      mobile: "+91 97111 22233",
-      email: "amit@legalsthal.com",
-      assignedClientsCount: 0,
+      name: "Saurabh Srivastav",
+      title: "Senior Incorporation Specialist",
+      mobile: "+91 62042 70990",
+      email: "legalsthal@gmail.com",
+      assignedClientsCount: 1,
       status: "Active",
       avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80"
+    },
+    {
+      id: "SPOC004",
+      name: "Ayush Raj",
+      title: "Incorporation Specialist",
+      mobile: "+91 91227 37416",
+      email: "legalsthal@gmail.com",
+      assignedClientsCount: 0,
+      status: "Active",
+      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"
     }
   ],
 

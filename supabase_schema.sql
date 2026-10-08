@@ -380,10 +380,15 @@ VALUES (
 -- 2. Professional SPOC Team Directory
 INSERT INTO spocs (spoc_id, name, title, mobile, email, assigned_clients, status)
 VALUES 
-    ('SPOC001', 'Priya Shah', 'Senior Incorporation Expert', '+91 98250 11223', 'priya.shah@legalsthal.com', 2, 'Active'),
-    ('SPOC002', 'Rahul Sharma', 'Client Relationship Executive', '+91 98250 44556', 'rahul.sharma@legalsthal.com', 1, 'Active'),
-    ('SPOC003', 'Amit Verma', 'Tax & Compliance Specialist', '+91 98250 77889', 'amit.verma@legalsthal.com', 1, 'Active')
-ON CONFLICT (spoc_id) DO NOTHING;
+    ('SPOC001', 'Harshit Srivastav', 'Incorporation Expert', '+91 9546273093', 'legalsthal@gmail.com', 2, 'Active'),
+    ('SPOC002', 'Mary Jaiswal', 'Client Relationship Executive', '+91 77620 62093', 'legalsthal@gmail.com', 1, 'Active'),
+    ('SPOC003', 'Saurabh Srivastav', 'Senior Incorporation Specialist', '+91 62042 70990', 'legalsthal@gmail.com', 1, 'Active'),
+    ('SPOC004', 'Ayush Raj', 'Incorporation Specialist', '+91 91227 37416', 'legalsthal@gmail.com', 0, 'Active')
+ON CONFLICT (spoc_id) DO UPDATE SET
+    name = EXCLUDED.name,
+    title = EXCLUDED.title,
+    mobile = EXCLUDED.mobile,
+    email = EXCLUDED.email;
 
 -- 3. Sample Clients (Matching Clean Production Starting Point)
 INSERT INTO clients (client_id, name, company_name, contact_name, email, mobile, login_id, password_hash, password_salt, first_login, status, state, address, gstin)

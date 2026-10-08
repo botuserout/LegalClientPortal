@@ -147,8 +147,11 @@ export function bindAdminClientsEvents() {
   });
 }
 
-export function openCreateClientWizard() {
+export async function openCreateClientWizard() {
   let wizardStep = 1;
+  const spocsList = await spocService.getSpocs();
+  let defaultSpocId = (spocsList && spocsList.length > 0) ? (spocsList[0].id || spocsList[0].spocId) : 'SPOC001';
+
   let wizardData = {
     companyName: '',
     contactPerson: '',
@@ -164,7 +167,7 @@ export function openCreateClientWizard() {
     companyType: 'Private Limited',
     totalAmount: 9999,
     paidAmount: 499,
-    spocId: 'SPOC001',
+    spocId: defaultSpocId,
     password: 'password123'
   };
 
@@ -296,14 +299,19 @@ export function openCreateClientWizard() {
           <div class="form-group">
             <label class="form-label">Assign Legal SPOC *</label>
             <select class="form-control" id="wz-spoc">
-              <option value="SPOC001" ${wizardData.spocId === 'SPOC001' ? 'selected' : ''}>Priya Shah (Senior Incorporation Expert)</option>
-              <option value="SPOC002" ${wizardData.spocId === 'SPOC002' ? 'selected' : ''}>Rahul Sharma (Client Relationship Executive)</option>
-              <option value="SPOC003" ${wizardData.spocId === 'SPOC003' ? 'selected' : ''}>Amit Verma (Tax & Compliance Specialist)</option>
+              ${spocsList.map(s => `
+                <option value="${s.id || s.spocId}" ${(wizardData.spocId === (s.id || s.spocId)) ? 'selected' : ''}>
+                  ${s.name} (${s.title || 'Legal Specialist'})
+                </option>
+              `).join('')}
             </select>
           </div>
         </form>
       `;
     } else if (wizardStep === 4) {
+      const assignedSpocObj = spocsList.find(s => (s.id || s.spocId) === wizardData.spocId);
+      const spocDisplay = assignedSpocObj ? `${assignedSpocObj.name} (${assignedSpocObj.title})` : wizardData.spocId;
+
       bodyHtml = `
         ${wizardBar}
         <div style="background-color: var(--bg-app); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.25rem;">
@@ -320,7 +328,7 @@ export function openCreateClientWizard() {
             <div><strong>Name RUN:</strong> ${wizardData.nameRun ? 'Yes (Enabled)' : 'No'}</div>
             <div><strong>Total Fee:</strong> ₹${Number(wizardData.totalAmount).toLocaleString('en-IN')}</div>
             <div><strong>Paid Amount:</strong> ₹${Number(wizardData.paidAmount).toLocaleString('en-IN')}</div>
-            <div><strong>Assigned SPOC:</strong> ${wizardData.spocId}</div>
+            <div><strong>Assigned SPOC:</strong> ${spocDisplay}</div>
           </div>
         </div>
       `;

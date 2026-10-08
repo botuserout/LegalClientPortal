@@ -114,11 +114,14 @@ export function bindAdminClientDetailEvents() {
   if (clientDetailEventsBound) return;
   clientDetailEventsBound = true;
 
-  document.addEventListener('click', (e) => {
+  document.addEventListener('click', async (e) => {
     const btn = e.target.closest('.js-open-add-service-modal');
     if (btn) {
       const clientId = btn.dataset.clientId;
       const clientName = btn.dataset.clientName;
+      btn.disabled = true;
+      const spocsList = await spocService.getSpocs();
+      btn.disabled = false;
 
       modal.open({
         title: `Add Service to Existing Client - ${clientName}`,
@@ -190,9 +193,11 @@ export function bindAdminClientDetailEvents() {
             <div class="form-group">
               <label class="form-label">Assign Dedicated SPOC *</label>
               <select class="form-control" id="as-spoc" required>
-                <option value="SPOC001">Priya Shah (Senior Incorporation Expert)</option>
-                <option value="SPOC002" selected>Rahul Sharma (Client Relationship Executive)</option>
-                <option value="SPOC003">Amit Verma (Tax & Compliance Specialist)</option>
+                ${spocsList.map(s => `
+                  <option value="${s.id || s.spocId}">
+                    ${s.name} (${s.title || 'Legal Specialist'})
+                  </option>
+                `).join('')}
               </select>
             </div>
           </form>
