@@ -23,9 +23,20 @@ const transporter = nodemailer.createTransport({
 });
 
 /**
+ * Resolves the live base portal URL.
+ * Automatically utilizes Netlify's production URL, custom PORTAL_URL environment variable,
+ * or defaults to https://legalsthalservice.netlify.app.
+ */
+function getPortalBaseUrl() {
+  const base = process.env.PORTAL_URL || process.env.URL || process.env.DEPLOY_PRIME_URL || 'https://legalsthalservice.netlify.app';
+  return base.replace(/\/$/, '');
+}
+
+/**
  * Base responsive email template wrapper with Legal Sthal luxury styling
  */
-function wrapTemplate(title, preheader, bodyHtml, ctaText = 'Open Legal Sthal Portal', ctaUrl = 'https://portal.legalsthal.com') {
+function wrapTemplate(title, preheader, bodyHtml, ctaText = 'Open Legal Sthal Portal', ctaUrl) {
+  const finalCtaUrl = ctaUrl || `${getPortalBaseUrl()}/#client/login`;
   return `
 <!DOCTYPE html>
 <html lang="en">
@@ -64,7 +75,7 @@ function wrapTemplate(title, preheader, bodyHtml, ctaText = 'Open Legal Sthal Po
         ${bodyHtml}
         ${ctaText ? `
         <div class="cta-container">
-          <a href="${ctaUrl}" class="btn" target="_blank">${ctaText} &rarr;</a>
+          <a href="${finalCtaUrl}" class="btn" target="_blank">${ctaText} &rarr;</a>
         </div>` : ''}
       </div>
       <div class="footer">
@@ -107,7 +118,8 @@ async function sendMail({ to, subject, html, text }) {
 /**
  * 1. Welcome & Onboarding Email
  */
-async function sendWelcomeEmail({ clientEmail, clientName, companyName, clientId, tempPassword, loginUrl = 'http://localhost:3000/#client/login' }) {
+async function sendWelcomeEmail({ clientEmail, clientName, companyName, clientId, tempPassword, loginUrl }) {
+  const targetLoginUrl = loginUrl || `${getPortalBaseUrl()}/#client/login`;
   const title = 'Welcome to Legal Sthal';
   const preheader = 'Your Corporate Client Portal is Ready';
   const body = `
@@ -128,14 +140,15 @@ async function sendWelcomeEmail({ clientEmail, clientName, companyName, clientId
   return sendMail({
     to: clientEmail,
     subject: `Welcome to Legal Sthal — Corporate Portal Access (${companyName || clientId})`,
-    html: wrapTemplate(title, preheader, body, 'Sign In to Portal', loginUrl)
+    html: wrapTemplate(title, preheader, body, 'Sign In to Portal', targetLoginUrl)
   });
 }
 
 /**
  * 2. Service Stage Update Email
  */
-async function sendStageUpdateEmail({ clientEmail, clientName, companyName, serviceName, stageName, progressPercentage, remarks, portalUrl = 'http://localhost:3000/#client/services' }) {
+async function sendStageUpdateEmail({ clientEmail, clientName, companyName, serviceName, stageName, progressPercentage, remarks, portalUrl }) {
+  const targetPortalUrl = portalUrl || `${getPortalBaseUrl()}/#client/services`;
   const title = 'Service Stage Progress';
   const preheader = `${serviceName} has progressed to: ${stageName}`;
   const body = `
@@ -159,14 +172,15 @@ async function sendStageUpdateEmail({ clientEmail, clientName, companyName, serv
   return sendMail({
     to: clientEmail,
     subject: `Update: ${serviceName} reached [${stageName}] — Legal Sthal`,
-    html: wrapTemplate(title, preheader, body, 'View Progress Tracker', portalUrl)
+    html: wrapTemplate(title, preheader, body, 'View Progress Tracker', targetPortalUrl)
   });
 }
 
 /**
  * 3. Document Status Update Email (Verified / Rejected)
  */
-async function sendDocumentStatusEmail({ clientEmail, clientName, companyName, serviceName, documentName, status, rejectionReason, portalUrl = 'http://localhost:3000/#client/documents' }) {
+async function sendDocumentStatusEmail({ clientEmail, clientName, companyName, serviceName, documentName, status, rejectionReason, portalUrl }) {
+  const targetPortalUrl = portalUrl || `${getPortalBaseUrl()}/#client/documents`;
   const isVerified = status === 'Verified';
   const title = isVerified ? 'Document Verified' : 'Action Required: Document Update Needed';
   const preheader = isVerified ? `Your ${documentName} was verified successfully` : `Please re-upload: ${documentName}`;
@@ -198,14 +212,15 @@ async function sendDocumentStatusEmail({ clientEmail, clientName, companyName, s
   return sendMail({
     to: clientEmail,
     subject: `Document ${status}: ${documentName} — Legal Sthal`,
-    html: wrapTemplate(title, preheader, body, isVerified ? 'View Documents' : 'Re-Upload Document Now', portalUrl)
+    html: wrapTemplate(title, preheader, body, isVerified ? 'View Documents' : 'Re-Upload Document Now', targetPortalUrl)
   });
 }
 
 /**
  * 4. Quote Request Proposal Email
  */
-async function sendQuoteProposalEmail({ clientEmail, clientName, serviceName, quoteAmount, remarks, portalUrl = 'http://localhost:3000/#client/quotes' }) {
+async function sendQuoteProposalEmail({ clientEmail, clientName, serviceName, quoteAmount, remarks, portalUrl }) {
+  const targetPortalUrl = portalUrl || `${getPortalBaseUrl()}/#client/quotes`;
   const title = 'Proposal Prepared';
   const preheader = `Formal fee proposal ready for ${serviceName}`;
   const body = `
@@ -225,7 +240,7 @@ async function sendQuoteProposalEmail({ clientEmail, clientName, serviceName, qu
   return sendMail({
     to: clientEmail,
     subject: `Fee Proposal Ready: ${serviceName} — Legal Sthal`,
-    html: wrapTemplate(title, preheader, body, 'Review & Accept Proposal', portalUrl)
+    html: wrapTemplate(title, preheader, body, 'Review & Accept Proposal', targetPortalUrl)
   });
 }
 

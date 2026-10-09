@@ -41,6 +41,15 @@ exports.handler = async (event, context) => {
       body = Object.assign({}, event.queryStringParameters, body);
     }
 
+    // Infer live production host if PORTAL_URL not explicitly configured
+    if (event.headers) {
+      const host = event.headers['x-forwarded-host'] || event.headers.host;
+      const proto = event.headers['x-forwarded-proto'] || 'https';
+      if (host && !host.includes('localhost') && !process.env.PORTAL_URL) {
+        process.env.PORTAL_URL = `${proto}://${host}`;
+      }
+    }
+
     const action = body.action || (event.queryStringParameters && event.queryStringParameters.action) || 'healthCheck';
 
     const result = await handleAction(action, body);
