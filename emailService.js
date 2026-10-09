@@ -6,7 +6,7 @@
 const nodemailer = require('nodemailer');
 
 const GMAIL_USER = (process.env.GMAIL_USER || 'legalsthal@gmail.com').trim();
-const GMAIL_PASS = (process.env.GMAIL_APP_PASS || 'tjhg jpwz vded bubk').replace(/\s+/g, '');
+const GMAIL_PASS = (process.env.GMAIL_APP_PASS || '').replace(/\s+/g, '');
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
