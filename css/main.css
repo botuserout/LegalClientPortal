@@ -61,19 +61,11 @@
   /* Aliases for UI Components & Header Notifications */
   --bg-surface: var(--bg-card);
   --bg-surface-alt: #181f32;
+  --bg-input: #131b2e;
+  --bg-input-focus: #0b1325;
+  --text-input: #f8fafc;
   --border-color: var(--border-subtle);
   --primary-main: var(--primary-500);
-
-  /* Layout Dimensions */
-  --sidebar-width: 270px;
-  --topbar-height: 72px;
-  --demo-bar-height: 0px;
-}
-
-body.has-demo-bar,
-body:has(.demo-workflow-bar) {
-  --demo-bar-height: 44px;
-}
 
   /* Precision Specular Radius */
   --radius-sm: 6px;
@@ -94,6 +86,61 @@ body:has(.demo-workflow-bar) {
 
   --transition-fast: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   --transition-normal: 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Layout Dimensions */
+  --sidebar-width: 270px;
+  --topbar-height: 72px;
+  --demo-bar-height: 0px;
+}
+
+/* Luxury Light Mode (Executive Ivory & Warm Gold Palette) */
+[data-theme="light"] {
+  --primary-900: #ffffff;
+  --primary-800: #f8fafc;
+  --primary-700: #ffffff;
+  --primary-600: #f1f5f9;
+  --primary-500: #b89728; /* Slightly deeper gold for contrast on light */
+  --primary-400: #d4af37;
+  --primary-100: #fef3c7;
+  --primary-50: #fffbeb;
+
+  --accent-gold: #b89728;
+  --accent-gold-bright: #997b24;
+  --accent-gold-dark: #785e13;
+  --accent-gold-gradient: linear-gradient(135deg, #d4af37 0%, #b89728 55%, #785e13 100%);
+  --accent-gold-glow: 0 0 16px rgba(184, 151, 40, 0.2);
+
+  --bg-app: #f4f6fa;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f8fafc;
+  --bg-sidebar: #0b1325; /* Keep signature opulent navy sidebar */
+  --bg-sidebar-active: #181f32;
+  --bg-surface: #ffffff;
+  --bg-surface-alt: #f1f5f9;
+  --bg-input: #ffffff;
+  --bg-input-focus: #ffffff;
+  --text-input: #0f172a;
+
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --text-light: #94a3b8;
+  --text-inverse: #0b1325;
+  --text-gold: #b89728;
+
+  --border-subtle: rgba(184, 151, 40, 0.22);
+  --border-strong: rgba(184, 151, 40, 0.45);
+  --border-color: rgba(0, 0, 0, 0.08);
+  --divider: rgba(0, 0, 0, 0.06);
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 14px -2px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(184, 151, 40, 0.12);
+  --shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(184, 151, 40, 0.18);
+  --shadow-xl: 0 20px 35px -5px rgba(0, 0, 0, 0.12), 0 0 15px rgba(184, 151, 40, 0.15);
+}
+
+body.has-demo-bar,
+body:has(.demo-workflow-bar) {
+  --demo-bar-height: 44px;
 }
 
 /* Reset & Base */
@@ -142,28 +189,28 @@ button {
   background: none;
 }
 
-input, select, textarea, .form-control {
+input:not([type="checkbox"]):not([type="radio"]), select, textarea, .form-control {
   font-family: inherit;
   font-size: 0.9375rem;
-  background-color: #131b2e !important;
-  color: #f8fafc !important;
-  border: 1px solid rgba(212, 175, 55, 0.28) !important;
+  background-color: var(--bg-input) !important;
+  color: var(--text-input) !important;
+  border: 1px solid var(--border-subtle) !important;
   border-radius: var(--radius-md);
   padding: 0.75rem 1rem;
   transition: all var(--transition-fast);
 }
 
-input:focus, select:focus, textarea:focus, .form-control:focus {
+input:not([type="checkbox"]):not([type="radio"]):focus, select:focus, textarea:focus, .form-control:focus {
   outline: none !important;
-  background-color: #0b1325 !important;
-  border-color: #d4af37 !important;
+  background-color: var(--bg-input-focus) !important;
+  border-color: var(--primary-500) !important;
   box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.25), 0 0 15px rgba(212, 175, 55, 0.15) !important;
-  color: #ffffff !important;
+  color: var(--text-input) !important;
 }
 
 select option {
-  background-color: #0f172a !important;
-  color: #f8fafc !important;
+  background-color: var(--bg-card) !important;
+  color: var(--text-main) !important;
 }
 
 /* Layout Shell */
@@ -384,20 +431,20 @@ select option {
 }
 .search-box input {
   width: 100%;
-  padding: 0.55rem 0.85rem 0.55rem 2.25rem;
-  background-color: #181f32;
-  border: 1px solid rgba(212, 175, 55, 0.25);
+  padding: 0.55rem 0.85rem 0.55rem 2.25rem !important;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  color: #f8fafc;
+  color: var(--text-input);
   transition: all var(--transition-fast);
 }
 .search-box input::placeholder {
-  color: #64748b;
+  color: var(--text-muted);
 }
 .search-box input:focus {
   outline: none;
-  border-color: #d4af37;
-  background-color: #0f172a;
+  border-color: var(--primary-500);
+  background-color: var(--bg-input-focus);
   box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
 }
 .search-box svg {
@@ -408,6 +455,16 @@ select option {
   width: 15px;
   height: 15px;
   color: var(--text-light);
+}
+
+.js-theme-toggle-btn {
+  transition: all var(--transition-fast);
+}
+.js-theme-toggle-btn:hover {
+  border-color: var(--primary-500) !important;
+  color: var(--primary-500) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.2);
 }
 
 .user-profile-badge {

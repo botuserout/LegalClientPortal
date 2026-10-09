@@ -6,10 +6,16 @@
 import { authService } from '../../services/authService.js';
 import { toast } from '../../ui/toast.js';
 import { renderStateOptionsHtml } from '../../config.js';
+import { renderThemeToggle } from '../../ui/theme.js';
 
 export function renderClientRegister() {
   return `
-    <div style="min-height: 100vh; display: flex; width: 100%; background-color: #0b1325; color: #f8fafc;">
+    <div style="min-height: 100vh; display: flex; width: 100%; background-color: var(--bg-app); color: var(--text-main); position: relative;">
+      <!-- Floating Theme Toggle -->
+      <div style="position: absolute; top: 1.25rem; right: 1.5rem; z-index: 100;">
+        ${renderThemeToggle('auth-theme-toggle', 'background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-main); box-shadow: var(--shadow-sm);')}
+      </div>
+
       <!-- Left Side Branding Banner -->
       <div style="flex: 1; background: linear-gradient(135deg, #060e1f 0%, #0b1325 50%, #0f172a 100%); color: white; padding: 4rem; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; border-right: 1px solid rgba(212, 175, 55, 0.15);" class="desktop-only-banner">
         <div style="position: absolute; right: -80px; bottom: -80px; width: 350px; height: 350px; border-radius: 50%; background: radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, rgba(212, 175, 55, 0) 70%); pointer-events: none;"></div>
@@ -48,12 +54,12 @@ export function renderClientRegister() {
       </div>
 
       <!-- Right Side Registration Form Card -->
-      <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 2.5rem 1.5rem; background-color: #0b1325;">
-        <div class="login-card-container" style="width: 100%; max-width: 480px; background-color: #0f172a; padding: 2.5rem; border-radius: 20px; border: 1px solid rgba(212, 175, 55, 0.25); box-shadow: 0 20px 48px -12px rgba(0, 0, 0, 0.85), 0 0 25px rgba(212, 175, 55, 0.1);">
+      <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 2.5rem 1.5rem; background-color: var(--bg-app);">
+        <div class="login-card-container" style="width: 100%; max-width: 480px; background-color: var(--bg-card); padding: 2.5rem; border-radius: 20px; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-xl);">
           
           <div style="margin-bottom: 1.75rem;">
-            <h2 style="font-family: var(--font-heading); font-size: 1.75rem; font-weight: 700; color: #ffffff;">Create Account</h2>
-            <p style="color: #94a3b8; font-size: 0.9375rem; margin-top: 0.35rem;">Register your business to access Legal Sthal services</p>
+            <h2 style="font-family: var(--font-heading); font-size: 1.75rem; font-weight: 700; color: var(--text-main);">Create Account</h2>
+            <p style="color: var(--text-muted); font-size: 0.9375rem; margin-top: 0.35rem;">Register your business to access Legal Sthal services</p>
           </div>
 
           <!-- Live Inline Error Banner -->
@@ -117,10 +123,10 @@ export function renderClientRegister() {
             </button>
           </form>
 
-          <div style="margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid rgba(255, 255, 255, 0.08); text-align: center;">
-            <span style="font-size: 0.875rem; color: #94a3b8;">
+          <div style="margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid var(--divider); text-align: center;">
+            <span style="font-size: 0.875rem; color: var(--text-muted);">
               Already have an account? 
-              <a href="#client/login" style="color: #d4af37; font-weight: 600; text-decoration: underline;">Sign In Here</a>
+              <a href="#client/login" style="color: var(--primary-500); font-weight: 600; text-decoration: underline;">Sign In Here</a>
             </span>
           </div>
 

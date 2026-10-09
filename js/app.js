@@ -9,6 +9,7 @@ import { renderSidebar } from './ui/sidebar.js';
 import { renderHeader, bindHeaderEvents } from './ui/header.js';
 import { renderDemoBar, bindDemoBarEvents } from './ui/demoBar.js';
 import { toast } from './ui/toast.js';
+import { initTheme } from './ui/theme.js';
 
 // Auth & Security Views
 import { renderClientLogin, bindClientLoginEvents } from './views/client/loginView.js';
@@ -62,6 +63,7 @@ class App {
   }
 
   async init() {
+    initTheme();
     window.addEventListener('hashchange', () => this.handleRoute());
     bindDemoBarEvents((route) => this.navigate(route));
 

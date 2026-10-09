@@ -6,6 +6,14 @@
   <meta name="theme-color" content="#0b1325" />
   <title>Legal Sthal — Client & Admin Portal</title>
   
+  <!-- Instant Theme Attribute to Prevent FOUC -->
+  <script>
+    try {
+      var t = localStorage.getItem('legalsthal_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+    } catch(e) {}
+  </script>
+  
   <!-- Google Fonts: Inter, Plus Jakarta Sans, Playfair Display -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

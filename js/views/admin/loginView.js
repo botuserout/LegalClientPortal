@@ -5,21 +5,27 @@
 
 import { authService } from '../../services/authService.js';
 import { toast } from '../../ui/toast.js';
+import { renderThemeToggle } from '../../ui/theme.js';
 
 export function renderAdminLogin() {
   const isExpired = window.location.hash.includes('expired=1');
 
   return `
-    <div style="min-height: 100vh; display: flex; width: 100%; background-color: #0b1325; color: white;">
+    <div style="min-height: 100vh; display: flex; width: 100%; background-color: var(--bg-app); color: var(--text-main); position: relative;">
+      <!-- Floating Theme Toggle -->
+      <div style="position: absolute; top: 1.25rem; right: 1.5rem; z-index: 100;">
+        ${renderThemeToggle('auth-theme-toggle', 'background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-main); box-shadow: var(--shadow-sm);')}
+      </div>
+
       <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem;">
-        <div class="login-card-container" style="width: 100%; max-width: 440px; background-color: #0f172a; padding: 2.5rem; border-radius: 20px; border: 1px solid rgba(212, 175, 55, 0.25); box-shadow: 0 20px 48px -12px rgba(0,0,0,0.85), 0 0 25px rgba(212, 175, 55, 0.1);">
+        <div class="login-card-container" style="width: 100%; max-width: 440px; background-color: var(--bg-card); padding: 2.5rem; border-radius: 20px; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-xl);">
           <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 2rem;">
             <div style="width: 46px; height: 46px; background-color: #ffffff; border-radius: 12px; display: flex; align-items: center; justify-content: center; padding: 5px; box-shadow: 0 4px 14px rgba(212, 175, 55, 0.3); border: 1px solid rgba(212, 175, 55, 0.4); flex-shrink: 0;">
               <img src="assets/logo.png" alt="Legal Sthal" style="width: 100%; height: 100%; object-fit: contain;" />
             </div>
             <div>
-              <h2 style="font-family: var(--font-heading); font-size: 1.45rem; font-weight: 700; color: #ffffff;">Legal Sthal</h2>
-              <span style="font-size: 0.72rem; text-transform: uppercase; color: #f3e5ab; font-weight: 700; letter-spacing: 0.08em;">Internal Admin Portal</span>
+              <h2 style="font-family: var(--font-heading); font-size: 1.45rem; font-weight: 700; color: var(--text-main);">Legal Sthal</h2>
+              <span style="font-size: 0.72rem; text-transform: uppercase; color: var(--primary-500); font-weight: 700; letter-spacing: 0.08em;">Internal Admin Portal</span>
             </div>
           </div>
 
@@ -34,14 +40,14 @@ export function renderAdminLogin() {
 
           <form id="admin-login-form">
             <div class="form-group">
-              <label class="form-label" for="admin-email" style="color: #cbd5e1;">Admin Email or User ID</label>
+              <label class="form-label" for="admin-email">Admin Email or User ID</label>
               <input type="text" id="admin-email" class="form-control" placeholder="admin@legalsthal.com or ADM001" required autocomplete="username" />
             </div>
 
             <div class="form-group">
               <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.4rem;">
-                <label class="form-label" for="admin-password" style="margin-bottom: 0; color: #cbd5e1;">Password</label>
-                <button type="button" id="admin-toggle-pwd-btn" aria-label="Toggle password visibility" style="background: none; border: none; cursor: pointer; color: #d4af37; font-size: 0.8125rem; font-weight: 600;">Show</button>
+                <label class="form-label" for="admin-password" style="margin-bottom: 0;">Password</label>
+                <button type="button" id="admin-toggle-pwd-btn" aria-label="Toggle password visibility" style="background: none; border: none; cursor: pointer; color: var(--primary-500); font-size: 0.8125rem; font-weight: 600;">Show</button>
               </div>
               <input type="password" id="admin-password" class="form-control" placeholder="••••••••" required autocomplete="current-password" />
             </div>
@@ -51,8 +57,8 @@ export function renderAdminLogin() {
             </button>
           </form>
 
-          <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.08); text-align: center;">
-            <a href="#client/login" style="color: #f3e5ab; font-size: 0.8125rem; font-weight: 600; text-decoration: underline;">
+          <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--divider); text-align: center;">
+            <a href="#client/login" style="color: var(--primary-500); font-size: 0.8125rem; font-weight: 600; text-decoration: underline;">
               ← Back to Client Portal Login
             </a>
           </div>

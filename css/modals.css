@@ -166,10 +166,10 @@
   width: 100%;
   height: 48px;
   padding: 0 1rem;
-  border: 1px solid rgba(212, 175, 55, 0.28);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  color: #f8fafc;
-  background-color: #131b2e;
+  color: var(--text-input);
+  background-color: var(--bg-input);
   font-family: inherit;
   font-size: 0.9375rem;
   box-sizing: border-box;
@@ -177,10 +177,10 @@
 }
 .form-control:focus {
   outline: none;
-  background-color: #0b1325;
-  border-color: #d4af37;
+  background-color: var(--bg-input-focus);
+  border-color: var(--primary-500);
   box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.25), 0 0 15px rgba(212, 175, 55, 0.15);
-  color: #ffffff;
+  color: var(--text-input);
 }
 select.form-control {
   appearance: none;
@@ -203,9 +203,9 @@ select.form-control {
   width: 100%;
   height: 48px;
   padding: 0 1rem;
-  border: 1px solid rgba(212, 175, 55, 0.28);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  background-color: #131b2e;
+  background-color: var(--bg-input);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -215,19 +215,19 @@ select.form-control {
   transition: all var(--transition-fast);
 }
 .form-checkbox-card:hover {
-  background-color: #17223b;
-  border-color: rgba(212, 175, 55, 0.5);
+  background-color: var(--bg-card-hover);
+  border-color: var(--border-strong);
   box-shadow: 0 0 12px rgba(212, 175, 55, 0.1);
 }
 .form-checkbox-card:focus-within {
-  border-color: #d4af37;
+  border-color: var(--primary-500);
   box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.25);
 }
 .form-checkbox-card-inner {
   display: inline-flex;
   align-items: center;
   gap: 0.65rem;
-  color: #f8fafc;
+  color: var(--text-input);
   font-size: 0.9375rem;
   font-weight: 500;
   width: 100%;

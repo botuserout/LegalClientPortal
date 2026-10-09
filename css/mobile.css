@@ -597,6 +597,10 @@ img, svg, video, canvas {
     height: 58px;
   }
 
+  .topbar-right {
+    gap: 0.5rem !important;
+  }
+
   .content-area {
     padding: 1rem 0.75rem;
   }

@@ -6,6 +6,7 @@
 import { authService } from '../services/authService.js';
 import { notificationService } from '../services/notificationService.js';
 import { icons } from './components.js';
+import { renderThemeToggle } from './theme.js';
 
 export function renderHeader(title = 'Dashboard', breadcrumbs = []) {
   const user = authService.getCurrentUser();
@@ -36,6 +37,9 @@ export function renderHeader(title = 'Dashboard', breadcrumbs = []) {
           ${icons.search}
           <input type="text" placeholder="Search services, docs..." id="global-search-input" />
         </div>
+
+        <!-- Light/Dark Mode Toggle -->
+        ${renderThemeToggle('topbar-theme-toggle', 'background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-main); margin-right: 0.75rem;')}
 
         <!-- Notification Bell & In-App Dropdown -->
         <div class="header-notif-wrapper" style="position: relative; margin-right: 0.75rem;">
