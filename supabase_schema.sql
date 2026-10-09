@@ -114,6 +114,7 @@ CREATE TABLE services (
     paid_amount NUMERIC(12, 2) NOT NULL DEFAULT 0.00,
     remaining_amount NUMERIC(12, 2) GENERATED ALWAYS AS (total_amount - paid_amount) STORED,
     dsc_count INTEGER NOT NULL DEFAULT 2,
+    name_run BOOLEAN NOT NULL DEFAULT false,
     current_stage VARCHAR(255) NOT NULL DEFAULT 'Application Intake',
     current_stage_index INTEGER NOT NULL DEFAULT 0,
     progress_percentage INTEGER NOT NULL DEFAULT 0 CHECK (progress_percentage BETWEEN 0 AND 100),
@@ -399,12 +400,12 @@ VALUES
 ON CONFLICT (client_id) DO NOTHING;
 
 -- 4. Sample Services Linked to Clients
-INSERT INTO services (service_id, client_id, service_code, crm_deal_id, service_name, company_type, state, total_amount, paid_amount, dsc_count, current_stage, current_stage_index, progress_percentage, status, spoc_id)
+INSERT INTO services (service_id, client_id, service_code, crm_deal_id, service_name, company_type, state, total_amount, paid_amount, dsc_count, name_run, current_stage, current_stage_index, progress_percentage, status, spoc_id)
 VALUES
-    ('SRV001', 'CL001', 'INC-2026-001', 'ZC-890124', 'Company Incorporation', 'Private Limited', 'Gujarat', 14999.00, 10000.00, 2, 'RUN (Name Approval)', 1, 28, 'In Progress', 'SPOC001'),
-    ('SRV002', 'CL001', 'GST-2026-042', 'ZC-890199', 'GST Registration', 'Private Limited', 'Gujarat', 2499.00, 2499.00, 0, 'ARN Generated', 2, 75, 'In Progress', 'SPOC003'),
-    ('SRV003', 'CL002', 'LLP-2026-008', 'ZC-890310', 'LLP Incorporation', 'LLP', 'Maharashtra', 9999.00, 9999.00, 2, 'Certificate Issued', 4, 100, 'Completed', 'SPOC001'),
-    ('SRV004', 'CL003', 'TM-2026-015', 'ZC-890455', 'Trademark Registration', 'Private Limited', 'Karnataka', 6500.00, 3000.00, 0, 'Search & Classification', 0, 15, 'In Progress', 'SPOC002')
+    ('SRV001', 'CL001', 'INC-2026-001', 'ZC-890124', 'Company Incorporation', 'Private Limited', 'Gujarat', 14999.00, 10000.00, 2, true, 'RUN (Name Approval)', 1, 28, 'In Progress', 'SPOC001'),
+    ('SRV002', 'CL001', 'GST-2026-042', 'ZC-890199', 'GST Registration', 'Private Limited', 'Gujarat', 2499.00, 2499.00, 0, false, 'ARN Generated', 2, 75, 'In Progress', 'SPOC003'),
+    ('SRV003', 'CL002', 'LLP-2026-008', 'ZC-890310', 'LLP Incorporation', 'LLP', 'Maharashtra', 9999.00, 9999.00, 2, true, 'Certificate Issued', 4, 100, 'Completed', 'SPOC001'),
+    ('SRV004', 'CL003', 'TM-2026-015', 'ZC-890455', 'Trademark Registration', 'Private Limited', 'Karnataka', 6500.00, 3000.00, 0, false, 'Search & Classification', 0, 15, 'In Progress', 'SPOC002')
 ON CONFLICT (service_id) DO NOTHING;
 
 -- 5. Service Stages for SRV001 (Company Incorporation)
