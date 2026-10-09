@@ -239,8 +239,11 @@ async function dispatchAction(action, payload) {
         }
       }
 
-      // 2. Check Clients
-      const clients = await supaGet('clients', `email=eq.${encodeURIComponent(email)}`);
+      // 2. Check Clients (by email, login_id or client_id)
+      let clients = await supaGet('clients', `email=eq.${encodeURIComponent(email)}`);
+      if (!clients || clients.length === 0) {
+        clients = await supaGet('clients', `client_id=eq.${encodeURIComponent(email.toUpperCase())}`);
+      }
       if (clients && clients.length > 0) {
         const client = clients[0];
         let isValid = verifyPassword(password, client.password_salt, client.password_hash);

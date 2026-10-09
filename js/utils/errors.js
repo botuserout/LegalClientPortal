@@ -53,12 +53,15 @@ export function normalizeApiError(err) {
     };
   }
 
-  // Already normalized structure
+  // Already normalized structure or object with explicit user message
   if (err.code && USER_FRIENDLY_MESSAGES[err.code]) {
     return {
       code: err.code,
       message: err.message || USER_FRIENDLY_MESSAGES[err.code]
     };
+  }
+  if (err.code === 'INVALID_CREDENTIALS') {
+    return { code: ERROR_CODES.AUTH_INVALID, message: err.message || USER_FRIENDLY_MESSAGES[ERROR_CODES.AUTH_INVALID] };
   }
 
   // Backend error envelope { error: { code, message } }
@@ -66,8 +69,8 @@ export function normalizeApiError(err) {
     const backendCode = err.error.code;
     const backendMsg = err.error.message;
 
-    if (backendCode === 'AUTH_INVALID_CREDENTIALS') {
-      return { code: ERROR_CODES.AUTH_INVALID, message: USER_FRIENDLY_MESSAGES[ERROR_CODES.AUTH_INVALID] };
+    if (backendCode === 'AUTH_INVALID_CREDENTIALS' || backendCode === 'INVALID_CREDENTIALS') {
+      return { code: ERROR_CODES.AUTH_INVALID, message: backendMsg || USER_FRIENDLY_MESSAGES[ERROR_CODES.AUTH_INVALID] };
     }
     if (backendCode === 'AUTH_ACCOUNT_LOCKED') {
       return { code: ERROR_CODES.AUTH_LOCKED, message: backendMsg || USER_FRIENDLY_MESSAGES[ERROR_CODES.AUTH_LOCKED] };

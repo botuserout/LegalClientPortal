@@ -67,10 +67,7 @@ class AuthService {
       if (CONFIG.isLiveEndpointConfigured()) {
         return {
           success: false,
-          error: normalizeApiError(response.error || {
-            code: ERROR_CODES.SERVER_ERROR,
-            message: 'Unable to connect to the authentication server. Please check your credentials or network.'
-          })
+          error: response.error || normalizeApiError(response)
         };
       }
 
